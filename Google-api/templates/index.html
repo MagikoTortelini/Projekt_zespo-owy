@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f8;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 16px 48px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+            align-items: center;
+        }
+
+        button, a.button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            button:disabled {
+                opacity: 0.65;
+                cursor: not-allowed;
+            }
+
+            button.secondary, a.button.secondary {
+                background: #4b5563;
+            }
+
+            button.danger, a.button.danger {
+                background: #dc2626;
+            }
+
+        .gear-btn {
+            font-size: 18px;
+            padding: 10px 14px;
+            line-height: 1;
+            background: #111827;
+        }
+
+        .status {
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .ok {
+            color: #15803d;
+        }
+
+        .warn {
+            color: #b45309;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            background: white;
+        }
+
+        th, td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+        }
+
+        .small {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .message {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .empty {
+            padding: 14px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-top: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            width: 380px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            z-index: 999;
+        }
+
+            .modal input {
+                width: 100%;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+
+        .field-label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Study Planner — baza minimum</h1>
+            <p class="small">
+                Flow: logowanie → import eventów z Google do SQLite → odczyt z bazy → generowanie planu → push planu do Google.
+            </p>
+
+            <div class="actions">
+                <a class="button" href="/auth/login">Zaloguj Google</a>
+                <button class="secondary" onclick="checkStatus()">Sprawdź status</button>
+                <button onclick="importEventsToDb()">Importuj eventy do bazy</button>
+                <button class="secondary" onclick="loadEventsFromDb()">Pokaż eventy z bazy</button>
+                <button class="secondary" onclick="openPlanModal()">Generuj plan z bazy</button>
+                <button class="gear-btn" onclick="openPreferencesModal()" title="Preferencje">⚙</button>
+                <a class="button danger" href="/auth/logout">Wyloguj</a>
+            </div>
+
+            <div id="status" class="status warn">Sprawdzam status logowania...</div>
+            <div id="message" class="message"></div>
+        </div>
+
+
+        <div id="plan-modal" class="modal">
+            <h3>Generowanie planu</h3>
+
+            <label class="field-label" for="total_hours">Liczba godzin nauki</label>
+            <input id="total_hours" type="number" placeholder="Np. 8"><br><br>
+
+            <label class="field-label" for="deadline_str">Deadline</label>
+            <input id="deadline_str" type="datetime-local"><br><br>
+
+            <div class="actions">
+                <button onclick="generatePlan()">Pokaż plan</button>
+                <button id="push-plan-btn" onclick="generateAndPushPlan()">Wyślij plan do Google</button>
+                <button class="secondary" onclick="closePlanModal()">Zamknij</button>
+            </div>
+        </div>
+
+
+        <div id="preferences-modal" class="modal">
+            <h3>Preferencje użytkownika</h3>
+
+            <label class="field-label" for="pref_start_hour">Preferowany początek nauki</label>
+            <input id="pref_start_hour" type="number" min="0" max="23"><br><br>
+
+            <label class="field-label" for="pref_end_hour">Preferowany koniec nauki</label>
+            <input id="pref_end_hour" type="number" min="1" max="23"><br><br>
+
+            <label class="field-label" for="pref_block_minutes">Długość sesji (min)</label>
+            <input id="pref_block_minutes" type="number" min="15"><br><br>
+
+            <label class="field-label" for="pref_break_minutes">Długość przerwy (min)</label>
+            <input id="pref_break_minutes" type="number" min="0"><br><br>
+
+            <label class="field-label" for="pref_max_daily_minutes">Maks. nauki dziennie (min)</label>
+            <input id="pref_max_daily_minutes" type="number" min="30"><br><br>
+
+            <div class="actions">
+                <button id="save-preferences-btn" onclick="savePreferences()">Zapisz preferencje</button>
+                <button class="secondary" onclick="closePreferencesModal()">Zamknij</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Wynik</h2>
+            <div id="events-container" class="empty">Najpierw kliknij „Importuj eventy do bazy”.</div>
+        </div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const messageEl = document.getElementById('message');
+        const eventsContainer = document.getElementById('events-container');
+
+        function setMessage(text, type = 'ok') {
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+
+                if (data.authenticated) {
+                    statusEl.textContent = 'Zalogowano do Google Calendar.';
+                    statusEl.className = 'status ok';
+                } else {
+                    statusEl.textContent = 'Użytkownik nie jest zalogowany.';
+                    statusEl.className = 'status warn';
+                }
+            } catch {
+                statusEl.textContent = 'Nie udało się sprawdzić statusu.';
+                statusEl.className = 'status error';
+            }
+        }
+
+        async function importEventsToDb() {
+            setMessage('Importuję eventy z Google do bazy...', 'warn');
+
+            try {
+                const response = await fetch('/events/import');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd importu.');
+                }
+
+                renderEvents(data.events);
+                setMessage(`Zaimportowano ${data.count} wydarzeń do bazy.`, 'ok');
+            } catch (error) {
+                eventsContainer.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                setMessage(error.message, 'error');
+            }
+        }
+
+        async function loadEventsFromDb() {
+            setMessage('Czytam wydarzenia z bazy...', 'warn');
+
+            try {
+                const response = await fetch('/events');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd odczytu z bazy.');
+                }
+
+                renderEvents(data, true);
+                setMessage(`W bazie jest ${data.length} wydarzeń.`, 'ok');
+            } catch (error) {
+                eventsContainer.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                setMessage(error.message, 'error');
+            }
+        }
+
+        function openPlanModal() {
+            document.getElementById('plan-modal').style.display = 'block';
+        }
+
+        function closePlanModal() {
+            document.getElementById('plan-modal').style.display = 'none';
+        }
+
+        async function openPreferencesModal() {
+            document.getElementById('preferences-modal').style.display = 'block';
+            await loadPreferences();
+        }
+
+        function closePreferencesModal() {
+            document.getElementById('preferences-modal').style.display = 'none';
+        }
+
+        function getPlanPayload() {
+            return {
+                total_hours: document.getElementById('total_hours').value,
+                deadline_str: document.getElementById('deadline_str').value.replace('T', ' ')
+            };
+        }
+
+        async function loadPreferences() {
+            try {
+                const response = await fetch('/preferences');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd pobierania preferencji.');
+                }
+
+                document.getElementById('pref_start_hour').value = data.preferred_start_hour;
+                document.getElementById('pref_end_hour').value = data.preferred_end_hour;
+                document.getElementById('pref_block_minutes').value = data.block_minutes;
+                document.getElementById('pref_break_minutes').value = data.break_minutes;
+                document.getElementById('pref_max_daily_minutes').value = data.max_daily_study_minutes;
+            } catch (error) {
+                setMessage(error.message, 'error');
+            }
+        }
+
+        async function savePreferences() {
+            const saveBtn = document.getElementById('save-preferences-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Zapisuję...';
+
+            try {
+                const payload = {
+                    preferred_start_hour: document.getElementById('pref_start_hour').value,
+                    preferred_end_hour: document.getElementById('pref_end_hour').value,
+                    block_minutes: document.getElementById('pref_block_minutes').value,
+                    break_minutes: document.getElementById('pref_break_minutes').value,
+                    max_daily_study_minutes: document.getElementById('pref_max_daily_minutes').value
+                };
+
+                const response = await fetch('/preferences', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd zapisu preferencji.');
+                }
+
+                closePreferencesModal();
+                setMessage('Preferencje zapisane poprawnie.', 'ok');
+            } catch (error) {
+                setMessage(error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Zapisz preferencje';
+            }
+        }
+
+        async function generatePlan() {
+            try {
+                const response = await fetch('/plan-study', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getPlanPayload())
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd generowania planu.');
+                }
+
+                renderPlan(data);
+                setMessage('Plan wygenerowany z danych z bazy i zapisanych preferencji.', 'ok');
+                closePlanModal();
+            } catch (error) {
+                setMessage(error.message, 'error');
+            }
+        }
+
+        async function generateAndPushPlan() {
+            const pushBtn = document.getElementById('push-plan-btn');
+            pushBtn.disabled = true;
+            pushBtn.textContent = 'Wysyłam...';
+
+            try {
+                const response = await fetch('/plan-study/push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(getPlanPayload())
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd wysyłania planu.');
+                }
+
+                closePlanModal();
+
+                if (data.skipped_count && data.skipped_count > 0) {
+                    setMessage(
+                        `Dodano ${data.pushed_count} bloków. Pominięto ${data.skipped_count}, bo już istniały.`,
+                        'warn'
+                    );
+                } else {
+                    setMessage(
+                        `Dodano ${data.pushed_count} bloków do Google i zapisano je w bazie.`,
+                        'ok'
+                    );
+                }
+
+                await loadEventsFromDb();
+            } catch (error) {
+                setMessage(error.message, 'error');
+            } finally {
+                pushBtn.disabled = false;
+                pushBtn.textContent = 'Wyślij plan do Google';
+            }
+        }
+
+        function renderEvents(events) {
+            if (!events || events.length === 0) {
+                eventsContainer.innerHTML = '<div class="empty">Brak wydarzeń.</div>';
+                return;
+            }
+
+            const rows = events.map(event => `
+                    <tr>
+                        <td>${escapeHtml(event.google_event_id || event.id || '-')}</td>
+                        <td>${escapeHtml(event.title || event.summary || '(bez nazwy)')}</td>
+                        <td>${escapeHtml(event.start_time || event.start || '')}</td>
+                        <td>${escapeHtml(event.end_time || event.end || '')}</td>
+                        <td>${escapeHtml(event.location || '')}</td>
+                    </tr>
+                `).join('');
+
+            eventsContainer.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Google ID</th>
+                                <th>Nazwa</th>
+                                <th>Start</th>
+                                <th>Koniec</th>
+                                <th>Lokalizacja</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+        }
+
+        function renderPlan(plan) {
+            if (!plan || plan.length === 0) {
+                eventsContainer.innerHTML = '<div class="empty">Nie udało się wygenerować żadnego planu.</div>';
+                return;
+            }
+
+            const rows = plan.map(block => `
+                    <tr>
+                        <td>${escapeHtml(block.date)}</td>
+                        <td>${escapeHtml(block.start)}</td>
+                        <td>${escapeHtml(block.end)}</td>
+                        <td>${escapeHtml(block.duration_min)}</td>
+                    </tr>
+                `).join('');
+
+            eventsContainer.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Start</th>
+                                <th>Koniec</th>
+                                <th>Czas trwania [min]</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function handleQueryMessage() {
+            const params = new URLSearchParams(window.location.search);
+            const login = params.get('login');
+            const logout = params.get('logout');
+            const details = params.get('details');
+
+            if (login === 'success') {
+                setMessage('Logowanie zakończone poprawnie.', 'ok');
+            } else if (login === 'error') {
+                setMessage('Błąd logowania: ' + (details || 'nieznany problem'), 'error');
+            } else if (logout === 'success') {
+                setMessage('Wylogowano użytkownika.', 'ok');
+            }
+        }
+
+        handleQueryMessage();
+        checkStatus();
+    </script>
+</body>
+</html>

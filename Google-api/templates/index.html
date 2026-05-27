@@ -13,7 +13,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1240px;
             margin: 0 auto;
             padding: 32px 16px 48px;
         }
@@ -30,12 +30,12 @@
             margin-top: 0;
         }
 
-        .actions {
+        .actions, .toolbar, .filters, .plan-toolbar {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             margin: 16px 0;
-            align-items: center;
+            align-items: end;
         }
 
         button, a.button {
@@ -50,7 +50,7 @@
         }
 
             button:disabled {
-                opacity: 0.65;
+                opacity: 0.6;
                 cursor: not-allowed;
             }
 
@@ -60,6 +60,10 @@
 
             button.danger, a.button.danger {
                 background: #dc2626;
+            }
+
+            button.success {
+                background: #15803d;
             }
 
         .gear-btn {
@@ -84,6 +88,19 @@
 
         .error {
             color: #b91c1c;
+        }
+
+        input, select {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        select {
+            min-width: 320px;
+            max-width: 100%;
         }
 
         table {
@@ -125,23 +142,55 @@
         .modal {
             display: none;
             position: fixed;
-            top: 12%;
+            top: 8%;
             left: 50%;
             transform: translateX(-50%);
             background: white;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 12px;
-            width: 380px;
+            width: 420px;
+            max-width: calc(100vw - 32px);
             box-shadow: 0 6px 18px rgba(0,0,0,0.15);
             z-index: 999;
         }
 
             .modal input {
                 width: 100%;
-                padding: 10px;
-                box-sizing: border-box;
             }
+
+        .participants-list {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 180px;
+            overflow: auto;
+        }
+
+        .participant-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+            .participant-row:last-child {
+                border-bottom: none;
+            }
+
+            .participant-row input {
+                width: auto;
+                margin-top: 3px;
+            }
+
+        .participant-email {
+            display: block;
+            color: #6b7280;
+            font-size: 12px;
+        }
 
         .field-label {
             display: block;
@@ -149,22 +198,250 @@
             margin-bottom: 6px;
             color: #374151;
         }
+
+        .filters div, .toolbar div, .plan-toolbar div {
+            min-width: 180px;
+        }
+
+        .filters input, .toolbar input {
+            width: 100%;
+        }
+
+        .dashboard-grid, .stats-grid, .plan-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .stat, .summary-box, .dashboard-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+            .stat .label, .summary-box .label, .dashboard-box .label {
+                font-size: 12px;
+                color: #6b7280;
+                margin-bottom: 6px;
+            }
+
+            .stat .value, .summary-box .value, .dashboard-box .value {
+                font-size: 18px;
+                font-weight: 700;
+                color: #111827;
+            }
+
+        .selected-plan-box {
+            margin-top: 12px;
+        }
+
+        details.plan-details {
+            margin-top: 14px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+            details.plan-details summary {
+                cursor: pointer;
+                font-weight: 700;
+            }
+
+        .block-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .block-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+            .block-card.done {
+                border-color: #86efac;
+                background: #f0fdf4;
+            }
+
+        .block-head {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .block-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .block-meta {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .badge {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 6px;
+            margin-top: 6px;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+            .badge.ok-badge {
+                background: #dcfce7;
+                color: #166534;
+            }
+
+            .badge.warn-badge {
+                background: #fef3c7;
+                color: #92400e;
+            }
+
+            .badge.study-badge {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+
+            .badge.calendar-badge {
+                background: #f3e8ff;
+                color: #6b21a8;
+            }
+
+        .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 12px;
+            align-items: start;
+            margin-top: 12px;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .calendar-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .day-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px;
+            min-height: 150px;
+        }
+
+        .today-card {
+            border-color: #2563eb;
+            box-shadow: inset 0 0 0 1px #2563eb;
+        }
+
+        .day-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .event-pill {
+            border-left: 4px solid #2563eb;
+            background: white;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+            .event-pill.study {
+                border-left-color: #15803d;
+            }
+
+        .event-time {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .event-title {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mini-list-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+            .mini-list-item:last-child {
+                border-bottom: none;
+            }
+
+        @media (max-width: 950px) {
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+
+            .week-grid {
+                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            }
+
+            select {
+                min-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <h1>Study Planner — baza minimum</h1>
+            <h1>Study Planner</h1>
             <p class="small">
-                Flow: logowanie → import eventów z Google do SQLite → odczyt z bazy → generowanie planu → push planu do Google.
+                Flow: logowanie → import eventów → generowanie planu → wybór planu → oznaczanie wykonania → statystyki po zatwierdzeniu okresu.
             </p>
 
             <div class="actions">
                 <a class="button" href="/auth/login">Zaloguj Google</a>
                 <button class="secondary" onclick="checkStatus()">Sprawdź status</button>
                 <button onclick="importEventsToDb()">Importuj eventy do bazy</button>
-                <button class="secondary" onclick="loadEventsFromDb()">Pokaż eventy z bazy</button>
-                <button class="secondary" onclick="openPlanModal()">Generuj plan z bazy</button>
+                <button class="secondary" onclick="loadCalendarPreview()">Odśwież mini-kalendarz</button>
+                <button class="secondary" onclick="openPlanModal()">Generuj nowy plan</button>
                 <button class="gear-btn" onclick="openPreferencesModal()" title="Preferencje">⚙</button>
                 <a class="button danger" href="/auth/logout">Wyloguj</a>
             </div>
@@ -173,9 +450,11 @@
             <div id="message" class="message"></div>
         </div>
 
-
         <div id="plan-modal" class="modal">
             <h3>Generowanie planu</h3>
+
+            <label class="field-label" for="block_name">Nazwa planu / bloków</label>
+            <input id="block_name" type="text" value="Nauka" placeholder="Np. Matematyka / AP / Bazy danych"><br><br>
 
             <label class="field-label" for="total_hours">Liczba godzin nauki</label>
             <input id="total_hours" type="number" placeholder="Np. 8"><br><br>
@@ -183,13 +462,21 @@
             <label class="field-label" for="deadline_str">Deadline</label>
             <input id="deadline_str" type="datetime-local"><br><br>
 
+            <label class="field-label" for="plan_study_location">Miejsce nauki (adres)</label>
+            <input id="plan_study_location" type="text" placeholder="Np. Wybrzeże Wyspiańskiego 27, Wrocław"><br><br>
+
+            <label class="field-label">Uczestnicy planu</label>
+            <div id="participants-container" class="participants-list">Ładuję użytkowników...</div>
+            <div class="small" style="margin-top: 6px; margin-bottom: 14px;">
+                Ty jesteś zawsze dodany. Zaznaczenie drugiej osoby tworzy wspólny plan na wolnych terminach obu użytkowników.
+            </div>
+
             <div class="actions">
-                <button onclick="generatePlan()">Pokaż plan</button>
-                <button id="push-plan-btn" onclick="generateAndPushPlan()">Wyślij plan do Google</button>
+                <button onclick="generatePlan()">Zapisz plan w bazie</button>
+                <button id="push-plan-btn" onclick="generateAndPushPlan()">Zapisz i wyślij do Google</button>
                 <button class="secondary" onclick="closePlanModal()">Zamknij</button>
             </div>
         </div>
-
 
         <div id="preferences-modal" class="modal">
             <h3>Preferencje użytkownika</h3>
@@ -209,6 +496,21 @@
             <label class="field-label" for="pref_max_daily_minutes">Maks. nauki dziennie (min)</label>
             <input id="pref_max_daily_minutes" type="number" min="30"><br><br>
 
+            <label class="field-label" for="pref_solo_mode">Tryb preferencji dla planu solo</label>
+            <select id="pref_solo_mode">
+                <option value="hard">Twarde</option>
+                <option value="soft">Miękkie</option>
+            </select><br><br>
+
+            <label class="field-label" for="pref_group_mode">Tryb preferencji dla planu multi</label>
+            <select id="pref_group_mode">
+                <option value="hard">Twarde</option>
+                <option value="soft">Miękkie</option>
+            </select><br><br>
+
+            <label class="field-label" for="pref_commute_buffer">Dodatkowy zapas po dojeździe (min)</label>
+            <input id="pref_commute_buffer" type="number" min="0" max="120" value="10"><br><br>
+
             <div class="actions">
                 <button id="save-preferences-btn" onclick="savePreferences()">Zapisz preferencje</button>
                 <button class="secondary" onclick="closePreferencesModal()">Zamknij</button>
@@ -216,8 +518,144 @@
         </div>
 
         <div class="card">
-            <h2>Wynik</h2>
-            <div id="events-container" class="empty">Najpierw kliknij „Importuj eventy do bazy”.</div>
+            <h2>Dashboard</h2>
+            <div class="small">Szybki podgląd: dzisiaj, najbliższe bloki, postęp wybranego planu i ostatnio policzone statystyki.</div>
+            <div class="dashboard-grid">
+                <div class="dashboard-box">
+                    <div class="label">Dzisiaj</div>
+                    <div id="dashboard-today" class="small">Brak danych. Odśwież mini-kalendarz.</div>
+                </div>
+                <div class="dashboard-box">
+                    <div class="label">Najbliższe bloki nauki</div>
+                    <div id="dashboard-upcoming" class="small">Brak danych.</div>
+                </div>
+                <div class="dashboard-box">
+                    <div class="label">Postęp wybranego planu</div>
+                    <div id="dashboard-plan" class="small">Nie wybrano planu.</div>
+                </div>
+                <div class="dashboard-box">
+                    <div class="label">Ostatnie statystyki</div>
+                    <div id="dashboard-stats" class="small">Statystyki jeszcze nieprzeliczone.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Wygenerowane plany nauki</h2>
+            <div class="small">
+                Najpierw wybierasz konkretny plan z listy. Dopiero w tym planie oznaczasz wykonanie bloków.
+            </div>
+
+            <div class="plan-toolbar">
+                <div>
+                    <label class="field-label" for="plan_select">Lista planów</label>
+                    <select id="plan_select" onchange="loadSelectedPlanBlocks()">
+                        <option value="">Brak planów</option>
+                    </select>
+                </div>
+                <button class="secondary" onclick="loadStudyPlans()">Odśwież listę</button>
+                <button id="sync-selected-plan-btn" class="secondary" onclick="syncSelectedPlanGoogleState()">Synchronizuj Google</button>
+                <button id="push-selected-plan-btn" onclick="pushSelectedPlanToGoogle()">Wyślij wybrany plan do Google</button>
+                <button id="delete-selected-plan-google-btn" class="danger" onclick="deleteSelectedPlanFromGoogle()">Usuń z Google</button>
+                <button id="delete-selected-plan-local-btn" class="danger" onclick="deleteSelectedPlanLocally()">Usuń z aplikacji</button>
+                <button class="secondary" onclick="cleanupLocalUsers()">Wyczyść lokalnych userów</button>
+            </div>
+
+            <div id="selected-plan-summary" class="selected-plan-box empty">Nie wybrano planu.</div>
+
+            <details class="plan-details" open>
+                <summary>Bloki wybranego planu</summary>
+                <div id="study-blocks-container" class="empty">Wybierz plan z listy.</div>
+            </details>
+        </div>
+
+        <div class="card">
+            <h2>Statystyki nauki</h2>
+            <div class="small">
+                Statystyki liczą się tylko po kliknięciu „Przelicz statystyki”. Checkboxy nie odświeżają ich automatycznie.
+            </div>
+
+            <div class="filters">
+                <div>
+                    <label class="field-label" for="stats_start_date">Od</label>
+                    <input id="stats_start_date" type="date">
+                </div>
+                <div>
+                    <label class="field-label" for="stats_end_date">Do</label>
+                    <input id="stats_end_date" type="date">
+                </div>
+                <div>
+                    <label class="field-label" for="stats_plan_select">Plan</label>
+                    <select id="stats_plan_select">
+                        <option value="">Wszystkie plany</option>
+                    </select>
+                </div>
+                <button onclick="loadStats()">Przelicz statystyki</button>
+                <button class="secondary" onclick="setStatsThisWeek()">Ten tydzień</button>
+                <button class="secondary" onclick="clearStatsFilter()">Wyczyść</button>
+            </div>
+
+            <div id="stats-info" class="empty">Nie wybrano okresu statystyk.</div>
+
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="label">Zrealizowane bloki</div>
+                    <div id="stat-done-blocks" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Realizacja czasu</div>
+                    <div id="stat-goal-percent" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Zrealizowane godziny</div>
+                    <div id="stat-done-hours" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Zaplanowane godziny</div>
+                    <div id="stat-planned-hours" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Pozostało</div>
+                    <div id="stat-remaining-hours" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Aktywne dni</div>
+                    <div id="stat-active-days" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Średnio / aktywny dzień</div>
+                    <div id="stat-average-day" class="value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="label">Najlepszy dzień</div>
+                    <div id="stat-best-day" class="value">-</div>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <canvas id="chart-completion" width="250" height="250" aria-label="Wykres realizacji"></canvas>
+                <canvas id="chart-daily" width="760" height="250" aria-label="Wykres dzienny"></canvas>
+            </div>
+
+            <div id="hour-stats" class="empty">Najczęstsze godziny nauki pojawią się po przeliczeniu statystyk.</div>
+        </div>
+
+        <div class="card">
+            <h2>Mini podgląd kalendarza</h2>
+            <div class="small">
+                Tygodniowy widok łączy wydarzenia z Google zapisane w bazie oraz wygenerowane bloki nauki.
+            </div>
+
+            <div class="calendar-header">
+                <div class="actions">
+                    <button class="secondary" onclick="changeWeek(-1)">← Poprzedni tydzień</button>
+                    <button class="secondary" onclick="goToCurrentWeek()">Aktualny tydzień</button>
+                    <button class="secondary" onclick="changeWeek(1)">Następny tydzień →</button>
+                </div>
+                <div id="calendar-range" class="small">Zakres: -</div>
+            </div>
+
+            <div id="events-container" class="empty">Ładuję mini-kalendarz...</div>
         </div>
     </div>
 
@@ -225,24 +663,255 @@
         const statusEl = document.getElementById('status');
         const messageEl = document.getElementById('message');
         const eventsContainer = document.getElementById('events-container');
+        const studyBlocksContainer = document.getElementById('study-blocks-container');
+        const selectedPlanSummary = document.getElementById('selected-plan-summary');
+        const planSelect = document.getElementById('plan_select');
+        const statsPlanSelect = document.getElementById('stats_plan_select');
+        const pushSelectedPlanBtn = document.getElementById('push-selected-plan-btn');
+        const syncSelectedPlanBtn = document.getElementById('sync-selected-plan-btn');
+        const deleteSelectedPlanGoogleBtn = document.getElementById('delete-selected-plan-google-btn');
+        const deleteSelectedPlanLocalBtn = document.getElementById('delete-selected-plan-local-btn');
+        const calendarRangeEl = document.getElementById('calendar-range');
+        const participantsContainer = document.getElementById('participants-container');
+
+        const dashboardToday = document.getElementById('dashboard-today');
+        const dashboardUpcoming = document.getElementById('dashboard-upcoming');
+        const dashboardPlan = document.getElementById('dashboard-plan');
+        const dashboardStats = document.getElementById('dashboard-stats');
+
+        const statDoneBlocksEl = document.getElementById('stat-done-blocks');
+        const statGoalPercentEl = document.getElementById('stat-goal-percent');
+        const statDoneHoursEl = document.getElementById('stat-done-hours');
+        const statPlannedHoursEl = document.getElementById('stat-planned-hours');
+        const statRemainingHoursEl = document.getElementById('stat-remaining-hours');
+        const statActiveDaysEl = document.getElementById('stat-active-days');
+        const statAverageDayEl = document.getElementById('stat-average-day');
+        const statBestDayEl = document.getElementById('stat-best-day');
+        const statsInfo = document.getElementById('stats-info');
+        const hourStats = document.getElementById('hour-stats');
+
+        const completionCanvas = document.getElementById('chart-completion');
+        const dailyCanvas = document.getElementById('chart-daily');
+
+        let studyPlans = [];
+        let availableParticipants = [];
+        let selectedPlanId = '';
+        let currentWeekStart = getStartOfWeek(new Date());
 
         function setMessage(text, type = 'ok') {
             messageEl.textContent = text;
             messageEl.className = 'message ' + type;
         }
 
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function toDateInputValue(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function addDays(date, days) {
+            const copy = new Date(date);
+            copy.setDate(copy.getDate() + days);
+            return copy;
+        }
+
+        function getStartOfWeek(date) {
+            const copy = new Date(date);
+            copy.setHours(0, 0, 0, 0);
+            const day = copy.getDay();
+            const diff = day === 0 ? -6 : 1 - day;
+            copy.setDate(copy.getDate() + diff);
+            return copy;
+        }
+
+        function formatHours(minutes) {
+            const hours = Number(minutes || 0) / 60;
+            if (Number.isNaN(hours)) return '0h';
+            return `${hours.toFixed(hours >= 10 ? 1 : 2)}h`;
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value);
+            return date.toLocaleString('pl-PL', {
+                year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+            return date.toLocaleDateString('pl-PL', {
+                weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit'
+            });
+        }
+
+        function formatShortDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value).slice(5, 10);
+            return date.toLocaleDateString('pl-PL', { weekday: 'short', day: '2-digit', month: '2-digit' });
+        }
+
+        function formatTimeRange(startValue, endValue) {
+            const start = new Date(startValue);
+            const end = new Date(endValue);
+            if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return '';
+            return `${start.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}–${end.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        function getStatsQuery() {
+            const params = new URLSearchParams();
+            const startDate = document.getElementById('stats_start_date').value;
+            const endDate = document.getElementById('stats_end_date').value;
+            const planId = statsPlanSelect.value;
+
+            if (!startDate || !endDate) {
+                throw new Error('Wybierz datę początkową i końcową statystyk.');
+            }
+
+            if (endDate < startDate) {
+                throw new Error('Data końcowa nie może być wcześniejsza niż początkowa.');
+            }
+
+            params.set('start_date', startDate);
+            params.set('end_date', endDate);
+            if (planId) params.set('plan_id', planId);
+            return `?${params.toString()}`;
+        }
+
+        function resetStatsView() {
+            statDoneBlocksEl.textContent = '-';
+            statGoalPercentEl.textContent = '-';
+            statDoneHoursEl.textContent = '-';
+            statPlannedHoursEl.textContent = '-';
+            statRemainingHoursEl.textContent = '-';
+            statActiveDaysEl.textContent = '-';
+            statAverageDayEl.textContent = '-';
+            statBestDayEl.textContent = '-';
+            statsInfo.textContent = 'Nie wybrano okresu statystyk.';
+            hourStats.innerHTML = 'Najczęstsze godziny nauki pojawią się po przeliczeniu statystyk.';
+            dashboardStats.innerHTML = 'Statystyki jeszcze nieprzeliczone.';
+            drawCompletionChart(null);
+            drawDailyChart(null, null);
+        }
+
+        function clearStatsFilter() {
+            document.getElementById('stats_start_date').value = '';
+            document.getElementById('stats_end_date').value = '';
+            statsPlanSelect.value = '';
+            resetStatsView();
+        }
+
+        function setStatsThisWeek() {
+            const start = getStartOfWeek(new Date());
+            const end = addDays(start, 6);
+            document.getElementById('stats_start_date').value = toDateInputValue(start);
+            document.getElementById('stats_end_date').value = toDateInputValue(end);
+        }
+
+        function getParticipantLabel(user) {
+            return user.display_name || user.email || `Użytkownik ${user.id}`;
+        }
+
+        function renderParticipants() {
+            if (!participantsContainer) return;
+
+            if (!availableParticipants || availableParticipants.length === 0) {
+                participantsContainer.innerHTML = '<div class="small">Brak innych zalogowanych użytkowników. Najpierw każdy uczestnik musi raz zalogować się przez Google.</div>';
+                updateNewPlanPushButton();
+                return;
+            }
+
+            participantsContainer.innerHTML = availableParticipants.map(user => {
+                const checked = user.is_current_user ? 'checked' : '';
+                const disabled = user.is_current_user ? 'disabled' : '';
+                const suffix = user.is_current_user ? ' <span class="badge ok-badge">Ty</span>' : '';
+
+                return `
+                        <label class="participant-row">
+                            <input type="checkbox" class="participant-checkbox" value="${escapeHtml(user.id)}" ${checked} ${disabled}>
+                            <span>
+                                <strong>${escapeHtml(getParticipantLabel(user))}</strong>${suffix}
+                                <span class="participant-email">${escapeHtml(user.email || '')}</span>
+                            </span>
+                        </label>
+                    `;
+            }).join('');
+
+            participantsContainer.querySelectorAll('.participant-checkbox').forEach(input => {
+                input.addEventListener('change', updateNewPlanPushButton);
+            });
+
+            updateNewPlanPushButton();
+        }
+
+        async function loadParticipants() {
+            try {
+                const response = await fetch('/participants');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd pobierania użytkowników.');
+                }
+
+                availableParticipants = data || [];
+                renderParticipants();
+            } catch (error) {
+                participantsContainer.innerHTML = `<div class="small">${escapeHtml(error.message)}</div>`;
+            }
+        }
+
+        function getSelectedParticipantIds() {
+            if (!participantsContainer) return [];
+            return Array.from(participantsContainer.querySelectorAll('.participant-checkbox'))
+                .filter(input => input.checked || input.disabled)
+                .map(input => Number(input.value))
+                .filter(value => !Number.isNaN(value));
+        }
+
+        function updateNewPlanPushButton() {
+            const pushBtn = document.getElementById('push-plan-btn');
+            if (!pushBtn) return;
+
+            const selectedCount = getSelectedParticipantIds().length;
+            pushBtn.disabled = false;
+            pushBtn.textContent = selectedCount > 1 ? 'Zapisz i wyślij do Google uczestników' : 'Zapisz i wyślij do Google';
+            pushBtn.title = selectedCount > 1
+                ? 'Plan zostanie wysłany do kalendarzy wszystkich uczestników, którzy mają aktywne logowanie Google.'
+                : '';
+        }
+
         async function checkStatus() {
             try {
                 const response = await fetch('/status');
                 const data = await response.json();
+                const user = data.user || {};
+                const userLabel = user.email
+                    ? `${user.display_name || 'Użytkownik'} (${user.email})`
+                    : `lokalny użytkownik #${data.user_id}`;
 
                 if (data.authenticated) {
-                    statusEl.textContent = 'Zalogowano do Google Calendar.';
+                    statusEl.textContent = `Zalogowano do Google Calendar jako: ${userLabel}.`;
                     statusEl.className = 'status ok';
                 } else {
-                    statusEl.textContent = 'Użytkownik nie jest zalogowany.';
+                    statusEl.textContent = `Nie zalogowano do Google. Aktualna sesja: ${userLabel}.`;
                     statusEl.className = 'status warn';
                 }
+
+                await loadParticipants();
             } catch {
                 statusEl.textContent = 'Nie udało się sprawdzić statusu.';
                 statusEl.className = 'status error';
@@ -260,7 +929,7 @@
                     throw new Error(data.detail || 'Błąd importu.');
                 }
 
-                renderEvents(data.events);
+                await loadCalendarPreview(false);
                 setMessage(`Zaimportowano ${data.count} wydarzeń do bazy.`, 'ok');
             } catch (error) {
                 eventsContainer.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
@@ -268,27 +937,719 @@
             }
         }
 
-        async function loadEventsFromDb() {
-            setMessage('Czytam wydarzenia z bazy...', 'warn');
-
+        async function loadStudyPlans(selectPlanId = null) {
             try {
-                const response = await fetch('/events');
+                const response = await fetch('/study-plans');
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Błąd odczytu z bazy.');
+                    throw new Error(data.detail || 'Błąd odczytu planów nauki.');
                 }
 
-                renderEvents(data, true);
-                setMessage(`W bazie jest ${data.length} wydarzeń.`, 'ok');
+                studyPlans = data || [];
+                renderStudyPlanSelect(studyPlans, selectPlanId);
+                renderStatsPlanSelect(studyPlans);
+
+                if (studyPlans.length === 0) {
+                    selectedPlanSummary.innerHTML = '<div class="empty">Brak wygenerowanych planów.</div>';
+                    studyBlocksContainer.innerHTML = '<div class="empty">Brak bloków do pokazania.</div>';
+                    dashboardPlan.innerHTML = 'Brak wygenerowanych planów.';
+                    updatePushButton(null);
+                    return;
+                }
+
+                await loadSelectedPlanBlocks();
+            } catch (error) {
+                selectedPlanSummary.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                setMessage(error.message, 'error');
+            }
+        }
+
+        function renderStudyPlanSelect(plans, selectPlanId = null) {
+            const previousValue = selectPlanId || selectedPlanId || planSelect.value;
+
+            if (!plans || plans.length === 0) {
+                planSelect.innerHTML = '<option value="">Brak planów</option>';
+                selectedPlanId = '';
+                return;
+            }
+
+            planSelect.innerHTML = plans.map(plan => {
+                const status = plan.pushed_to_google ? 'wysłany' : 'lokalny';
+                const number = plan.display_number || plan.id;
+                const type = plan.is_group ? 'wspólny' : 'solo';
+                const people = plan.participants_count ? `${plan.participants_count} os.` : '1 os.';
+                const label = `Plan ${number} — ${plan.name} | ${type}, ${people} | ${plan.done_blocks}/${plan.total_blocks} zrobione | ${status} | ${formatDateTime(plan.created_at)}`;
+                return `<option value="${escapeHtml(plan.id)}">${escapeHtml(label)}</option>`;
+            }).join('');
+
+            const exists = plans.some(plan => String(plan.id) === String(previousValue));
+            planSelect.value = exists ? String(previousValue) : String(plans[0].id);
+            selectedPlanId = planSelect.value;
+        }
+
+        function renderStatsPlanSelect(plans) {
+            const previous = statsPlanSelect.value;
+            const options = ['<option value="">Wszystkie plany</option>'];
+            (plans || []).forEach(plan => {
+                const number = plan.display_number || plan.id;
+                const type = plan.is_group ? 'wspólny' : 'solo';
+                options.push(`<option value="${escapeHtml(plan.id)}">${escapeHtml(`Plan ${number} — ${plan.name} (${type})`)}</option>`);
+            });
+            statsPlanSelect.innerHTML = options.join('');
+            if ((plans || []).some(plan => String(plan.id) === String(previous))) {
+                statsPlanSelect.value = previous;
+            }
+        }
+
+        function updatePushButton(plan) {
+            if (!plan) {
+                pushSelectedPlanBtn.disabled = true;
+                pushSelectedPlanBtn.textContent = 'Wyślij wybrany plan do Google';
+                syncSelectedPlanBtn.disabled = true;
+                deleteSelectedPlanGoogleBtn.disabled = true;
+                deleteSelectedPlanLocalBtn.disabled = true;
+                return;
+            }
+
+            const expectedGoogleEvents = Number(plan.expected_google_events || plan.total_blocks || 0);
+            const pushedGoogleEvents = Number(plan.pushed_google_events || plan.pushed_blocks || 0);
+            const hasGoogleBlocks = pushedGoogleEvents > 0;
+            const fullyPushed = plan.pushed_to_google || (expectedGoogleEvents > 0 && pushedGoogleEvents >= expectedGoogleEvents);
+
+            syncSelectedPlanBtn.disabled = !hasGoogleBlocks;
+            deleteSelectedPlanGoogleBtn.disabled = !hasGoogleBlocks;
+            deleteSelectedPlanLocalBtn.disabled = false;
+
+            if (fullyPushed) {
+                pushSelectedPlanBtn.disabled = true;
+                pushSelectedPlanBtn.textContent = plan.is_group ? 'Wspólny plan już wysłany' : 'Plan już wysłany do Google';
+            } else {
+                pushSelectedPlanBtn.disabled = false;
+                pushSelectedPlanBtn.textContent = plan.is_group ? 'Wyślij plan do kalendarzy uczestników' : 'Wyślij wybrany plan do Google';
+            }
+        }
+
+        async function loadSelectedPlanBlocks() {
+            selectedPlanId = planSelect.value;
+
+            if (!selectedPlanId) {
+                selectedPlanSummary.innerHTML = '<div class="empty">Nie wybrano planu.</div>';
+                studyBlocksContainer.innerHTML = '<div class="empty">Wybierz plan z listy.</div>';
+                dashboardPlan.innerHTML = 'Nie wybrano planu.';
+                updatePushButton(null);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/study-plans/${selectedPlanId}/blocks`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd odczytu bloków planu.');
+                }
+
+                renderSelectedPlanSummary(data.plan);
+                renderStudyBlocks(data.blocks);
+                updatePushButton(data.plan);
+            } catch (error) {
+                studyBlocksContainer.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+                setMessage(error.message, 'error');
+            }
+        }
+
+        function renderSelectedPlanSummary(plan) {
+            if (!plan) {
+                selectedPlanSummary.innerHTML = '<div class="empty">Nie znaleziono planu.</div>';
+                dashboardPlan.innerHTML = 'Nie znaleziono planu.';
+                return;
+            }
+
+            const percent = Number(plan.total_blocks || 0) === 0 ? 0 : Math.round((Number(plan.done_blocks || 0) / Number(plan.total_blocks || 0)) * 100);
+            const googleStatus = plan.pushed_to_google ? 'Wysłany do Google' : 'Jeszcze lokalny';
+            const typeLabel = plan.is_group ? 'Wspólny' : 'Solo';
+            const participants = (plan.participants || []).map(user => getParticipantLabel(user)).join(', ') || 'Brak danych';
+
+            selectedPlanSummary.innerHTML = `
+                    <div class="plan-summary-grid">
+                        <div class="summary-box">
+                            <div class="label">Nazwa planu</div>
+                            <div class="value">Plan ${escapeHtml(plan.display_number || plan.id)} — ${escapeHtml(plan.name)}</div>
+                            <div class="small">${escapeHtml(typeLabel)}</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="label">Uczestnicy</div>
+                            <div class="value">${escapeHtml(plan.participants_count || 1)} os.</div>
+                            <div class="small">${escapeHtml(participants)}</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="label">Realizacja</div>
+                            <div class="value">${escapeHtml(plan.done_blocks)} / ${escapeHtml(plan.total_blocks)} (${percent}%)</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="label">Czas planu</div>
+                            <div class="value">${formatHours(plan.planned_minutes)}</div>
+                        </div>
+                        <div class="summary-box">
+                            <div class="label">Google</div>
+                            <div class="value">${escapeHtml(plan.pushed_google_events || plan.pushed_blocks)} / ${escapeHtml(plan.expected_google_events || plan.total_blocks)}</div>
+                            <div class="small">${escapeHtml(googleStatus)}</div>
+                        </div>
+                    </div>
+                `;
+
+            dashboardPlan.innerHTML = `
+                    <div class="value">${percent}%</div>
+                    <div>Plan ${escapeHtml(plan.display_number || plan.id)} — ${escapeHtml(plan.name)}</div>
+                    <div>${escapeHtml(typeLabel)} · ${escapeHtml(plan.participants_count || 1)} os.</div>
+                    <div>${escapeHtml(plan.done_blocks)} z ${escapeHtml(plan.total_blocks)} bloków zrobione</div>
+                    <div>${escapeHtml(googleStatus)}</div>
+                `;
+        }
+
+        function renderStudyBlocks(blocks) {
+            if (!blocks || blocks.length === 0) {
+                studyBlocksContainer.innerHTML = '<div class="empty">Wybrany plan nie ma bloków.</div>';
+                return;
+            }
+
+            const cards = blocks.map(block => {
+                const pushedCount = Number(block.pushed_to_google_count || 0);
+                const googleBadge = pushedCount > 0
+                    ? `<span class="badge ok-badge">Google: ${pushedCount} kal.</span>`
+                    : '<span class="badge warn-badge">Google: lokalny</span>';
+                const doneBadge = block.done
+                    ? '<span class="badge ok-badge">zrobione</span>'
+                    : '<span class="badge">do zrobienia</span>';
+
+                return `
+                        <div class="block-card ${block.done ? 'done' : ''}" data-id="${escapeHtml(block.id)}">
+                            <div class="block-head">
+                                <div>
+                                    <div class="block-title">${escapeHtml(block.title)}</div>
+                                    <div class="block-meta">
+                                        ${escapeHtml(formatDate(block.date))}<br>
+                                        ${escapeHtml(block.start)}–${escapeHtml(block.end)} · ${escapeHtml(block.duration_min)} min
+                                    </div>
+                                </div>
+                                <label class="checkbox-wrap">
+                                    <input type="checkbox" ${block.done ? 'checked' : ''} aria-label="Zrealizowany blok ${escapeHtml(block.id)}">
+                                    zrobione
+                                </label>
+                            </div>
+                            <div>${googleBadge}${doneBadge}</div>
+                        </div>
+                    `;
+            }).join('');
+
+            studyBlocksContainer.innerHTML = `<div class="block-list">${cards}</div>`;
+        }
+
+        studyBlocksContainer.addEventListener('change', async (event) => {
+            const target = event.target;
+            if (!target || target.type !== 'checkbox') return;
+
+            const card = target.closest('.block-card');
+            if (!card) return;
+
+            const blockId = card.getAttribute('data-id');
+            const done = Boolean(target.checked);
+
+            try {
+                const response = await fetch(`/study-blocks/${blockId}/done`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ done })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd aktualizacji bloku.');
+                }
+
+                card.classList.toggle('done', done);
+                setMessage('Zapisano status bloku w bazie. Statystyki przeliczysz osobnym przyciskiem.', 'ok');
+                await loadStudyPlans(selectedPlanId);
+                await loadCalendarPreview(false);
+            } catch (error) {
+                target.checked = !done;
+                setMessage(error.message, 'error');
+            }
+        });
+
+        async function pushSelectedPlanToGoogle() {
+            selectedPlanId = planSelect.value;
+            if (!selectedPlanId) {
+                setMessage('Najpierw wybierz plan z listy.', 'warn');
+                return;
+            }
+
+            const plan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+            if (plan && plan.pushed_to_google) {
+                setMessage('Plan wygląda na wysłany. Najpierw synchronizuję status z Google...', 'warn');
+                await syncSelectedPlanGoogleState(false);
+            }
+
+            pushSelectedPlanBtn.disabled = true;
+            pushSelectedPlanBtn.textContent = 'Wysyłam...';
+
+            try {
+                const response = await fetch(`/study-plans/${selectedPlanId}/push`, { method: 'POST' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd wysyłania planu do Google.');
+                }
+
+                renderSelectedPlanSummary(data.plan);
+                renderStudyBlocks(data.blocks);
+                await loadStudyPlans(selectedPlanId);
+                await loadCalendarPreview(false);
+
+                if (data.skipped_count && data.skipped_count > 0) {
+                    setMessage(`Dodano ${data.pushed_count} bloków. Pominięto ${data.skipped_count}.`, 'warn');
+                } else {
+                    setMessage(`Dodano ${data.pushed_count} bloków z wybranego planu do Google.`, 'ok');
+                }
+            } catch (error) {
+                setMessage(error.message, 'error');
+            } finally {
+                const refreshedPlan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+                updatePushButton(refreshedPlan || null);
+            }
+        }
+
+        async function syncSelectedPlanGoogleState(showMessage = true) {
+            selectedPlanId = planSelect.value;
+            if (!selectedPlanId) {
+                setMessage('Najpierw wybierz plan z listy.', 'warn');
+                return;
+            }
+
+            if (showMessage) setMessage('Synchronizuję status planu z Google Calendar...', 'warn');
+            syncSelectedPlanBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/study-plans/${selectedPlanId}/sync-google`, { method: 'POST' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd synchronizacji z Google.');
+                }
+
+                renderSelectedPlanSummary(data.plan);
+                renderStudyBlocks(data.blocks);
+                await loadStudyPlans(selectedPlanId);
+                await loadCalendarPreview(false);
+
+                if (showMessage) {
+                    setMessage(`Synchronizacja gotowa. Sprawdzono ${data.checked_count}, brakujące w Google: ${data.missing_count}.`, 'ok');
+                }
+            } catch (error) {
+                setMessage(error.message, 'error');
+            } finally {
+                const refreshedPlan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+                updatePushButton(refreshedPlan || null);
+            }
+        }
+
+        async function deleteSelectedPlanFromGoogle() {
+            selectedPlanId = planSelect.value;
+            if (!selectedPlanId) {
+                setMessage('Najpierw wybierz plan z listy.', 'warn');
+                return;
+            }
+
+            const plan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+            const planName = plan ? `Plan ${plan.display_number || plan.id} — ${plan.name}` : 'wybrany plan';
+            const confirmed = confirm(`Usunąć z Google Calendar wszystkie eventy powiązane z planem: ${planName}? Lokalny plan w aplikacji zostanie zachowany.`);
+            if (!confirmed) return;
+
+            deleteSelectedPlanGoogleBtn.disabled = true;
+            deleteSelectedPlanGoogleBtn.textContent = 'Usuwam...';
+
+            try {
+                const response = await fetch(`/study-plans/${selectedPlanId}/google`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd usuwania planu z Google.');
+                }
+
+                renderSelectedPlanSummary(data.plan);
+                renderStudyBlocks(data.blocks);
+                await loadStudyPlans(selectedPlanId);
+                await loadCalendarPreview(false);
+
+                setMessage(`Usunięto z Google: ${data.deleted_count}. Już brakowało: ${data.already_missing_count}. Lokalny plan został w aplikacji.`, 'ok');
+            } catch (error) {
+                setMessage(error.message, 'error');
+            } finally {
+                deleteSelectedPlanGoogleBtn.textContent = 'Usuń z Google';
+                const refreshedPlan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+                updatePushButton(refreshedPlan || null);
+            }
+        }
+
+        async function deleteSelectedPlanLocally() {
+            selectedPlanId = planSelect.value;
+            if (!selectedPlanId) {
+                setMessage('Najpierw wybierz plan z listy.', 'warn');
+                return;
+            }
+
+            const plan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+            const planName = plan ? `Plan ${plan.display_number || plan.id} — ${plan.name}` : 'wybrany plan';
+            const hasGoogleEvents = plan && Number(plan.pushed_google_events || plan.pushed_blocks || 0) > 0;
+            const warning = hasGoogleEvents
+                ? '\n\nUWAGA: ten plan ma eventy w Google Calendar. Najpierw najlepiej kliknij „Usuń z Google”, inaczej eventy mogą zostać w kalendarzu.'
+                : '';
+
+            const confirmed = confirm(`Usunąć z aplikacji plan: ${planName}?${warning}`);
+            if (!confirmed) return;
+
+            deleteSelectedPlanLocalBtn.disabled = true;
+            deleteSelectedPlanLocalBtn.textContent = 'Usuwam...';
+
+            try {
+                const response = await fetch(`/study-plans/${selectedPlanId}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd usuwania planu z aplikacji.');
+                }
+
+                selectedPlanId = '';
+                await loadStudyPlans();
+                await loadCalendarPreview(false);
+                resetStatsView();
+                setMessage('Plan został usunięty z aplikacji.', 'ok');
+            } catch (error) {
+                setMessage(error.message, 'error');
+            } finally {
+                deleteSelectedPlanLocalBtn.textContent = 'Usuń z aplikacji';
+                const refreshedPlan = studyPlans.find(item => String(item.id) === String(selectedPlanId));
+                updatePushButton(refreshedPlan || null);
+            }
+        }
+
+        async function cleanupLocalUsers() {
+            const confirmed = confirm('Wyczyścić lokalnych testowych użytkowników bez Google loginu? Konta Google, eventy i plany realnych użytkowników zostaną zachowane.');
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch('/maintenance/cleanup-local-users', { method: 'POST' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd czyszczenia lokalnych użytkowników.');
+                }
+
+                await loadParticipants();
+                setMessage(`Usunięto lokalnych użytkowników: ${data.deleted_users}.`, 'ok');
+            } catch (error) {
+                setMessage(error.message, 'error');
+            }
+        }
+
+        async function loadStats() {
+            let query = '';
+
+            try {
+                query = getStatsQuery();
+            } catch (error) {
+                setMessage(error.message, 'warn');
+                return;
+            }
+
+            try {
+                const response = await fetch('/stats' + query);
+                const stats = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(stats.detail || 'Błąd liczenia statystyk.');
+                }
+
+                const startDate = document.getElementById('stats_start_date').value;
+                const endDate = document.getElementById('stats_end_date').value;
+                const planLabel = statsPlanSelect.value ? ` Plan: ${statsPlanSelect.options[statsPlanSelect.selectedIndex].text}.` : ' Wszystkie plany.';
+                statsInfo.textContent = `Statystyki policzone dla okresu: ${startDate} — ${endDate}.${planLabel}`;
+
+                statDoneBlocksEl.textContent = `${stats.done_blocks} / ${stats.total_blocks}`;
+                statGoalPercentEl.textContent = `${stats.goal_percent}%`;
+                statDoneHoursEl.textContent = formatHours(stats.done_minutes);
+                statPlannedHoursEl.textContent = formatHours(stats.planned_minutes);
+                statRemainingHoursEl.textContent = formatHours(stats.remaining_minutes);
+                statActiveDaysEl.textContent = String(stats.active_days_count || 0);
+                statAverageDayEl.textContent = formatHours(stats.average_done_minutes_per_active_day);
+                statBestDayEl.textContent = stats.best_day ? `${formatShortDate(stats.best_day.date)} · ${formatHours(stats.best_day.minutes)}` : '-';
+
+                drawCompletionChart(stats.goal_percent);
+                drawDailyChart(stats.per_day_planned_minutes, stats.per_day_done_minutes);
+                renderHourStats(stats.most_common_hours);
+
+                dashboardStats.innerHTML = `
+                        <div class="value">${escapeHtml(stats.goal_percent)}%</div>
+                        <div>${formatHours(stats.done_minutes)} z ${formatHours(stats.planned_minutes)}</div>
+                        <div>${escapeHtml(stats.done_blocks)} z ${escapeHtml(stats.total_blocks)} bloków</div>
+                    `;
+
+                setMessage('Statystyki zostały przeliczone.', 'ok');
+            } catch (error) {
+                setMessage(error.message, 'error');
+            }
+        }
+
+        function renderHourStats(hours) {
+            if (!hours || hours.length === 0) {
+                hourStats.innerHTML = 'Brak zrealizowanych bloków, więc nie da się wskazać najczęstszych godzin nauki.';
+                return;
+            }
+
+            hourStats.innerHTML = `
+                    <strong>Najczęstsze godziny rozpoczęcia nauki:</strong>
+                    ${hours.map(item => `<span class="badge study-badge">${escapeHtml(item.hour)} · ${escapeHtml(item.count)}x</span>`).join('')}
+                `;
+        }
+
+        function drawCompletionChart(percent) {
+            if (!completionCanvas) return;
+            const ctx = completionCanvas.getContext('2d');
+            const width = completionCanvas.width;
+            const height = completionCanvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (percent === null || percent === undefined) {
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Brak danych', width / 2, height / 2);
+                return;
+            }
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) / 2 - 20;
+            const lineWidth = 18;
+            const startAngle = -Math.PI / 2;
+            const safePercent = Math.max(0, Math.min(100, Number(percent || 0)));
+            const endAngle = startAngle + (2 * Math.PI * (safePercent / 100));
+
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.stroke();
+
+            ctx.fillStyle = '#111827';
+            ctx.font = '700 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${safePercent}%`, centerX, centerY - 6);
+
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '14px Arial';
+            ctx.fillText('czasu', centerX, centerY + 26);
+        }
+
+        function drawDailyChart(perDayPlannedMinutes, perDayDoneMinutes) {
+            if (!dailyCanvas) return;
+            const ctx = dailyCanvas.getContext('2d');
+            const width = dailyCanvas.width;
+            const height = dailyCanvas.height;
+            ctx.clearRect(0, 0, width, height);
+
+            const days = Array.from(new Set([
+                ...Object.keys(perDayPlannedMinutes || {}),
+                ...Object.keys(perDayDoneMinutes || {})
+            ])).sort();
+
+            if (days.length === 0) {
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                ctx.fillText('Brak bloków w wybranym okresie.', 14, 14);
+                return;
+            }
+
+            const padding = { top: 20, right: 18, bottom: 60, left: 48 };
+            const chartW = width - padding.left - padding.right;
+            const chartH = height - padding.top - padding.bottom;
+            const plannedValues = days.map(day => Number(perDayPlannedMinutes?.[day] || 0) / 60);
+            const doneValues = days.map(day => Number(perDayDoneMinutes?.[day] || 0) / 60);
+            const maxValue = Math.max(1, ...plannedValues, ...doneValues);
+
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, padding.top + chartH);
+            ctx.lineTo(padding.left + chartW, padding.top + chartH);
+            ctx.stroke();
+
+            const barCount = days.length;
+            const groupGap = 10;
+            const groupW = Math.max(16, Math.floor((chartW - (barCount - 1) * groupGap) / barCount));
+            const barW = Math.max(6, Math.floor(groupW / 2) - 2);
+
+            days.forEach((day, i) => {
+                const planned = plannedValues[i];
+                const done = doneValues[i];
+                const plannedH = Math.round((planned / maxValue) * (chartH - 6));
+                const doneH = Math.round((done / maxValue) * (chartH - 6));
+                const x = padding.left + i * (groupW + groupGap);
+                const baseY = padding.top + chartH;
+
+                ctx.fillStyle = '#c7d2fe';
+                ctx.fillRect(x, baseY - plannedH, barW, plannedH);
+
+                ctx.fillStyle = '#2563eb';
+                ctx.fillRect(x + barW + 3, baseY - doneH, barW, doneH);
+
+                ctx.fillStyle = '#111827';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.save();
+                ctx.translate(x + groupW / 2, baseY + 8);
+                ctx.rotate(-Math.PI / 6);
+                ctx.fillText(day.slice(5), 0, 0);
+                ctx.restore();
+            });
+
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('jasny: plan, ciemny: zrobione', padding.left, 14);
+        }
+
+        async function loadCalendarPreview(showMessage = true) {
+            const startDate = toDateInputValue(currentWeekStart);
+            const endDate = toDateInputValue(addDays(currentWeekStart, 6));
+            calendarRangeEl.textContent = `Zakres: ${startDate} — ${endDate}`;
+
+            if (showMessage) setMessage('Ładuję mini-kalendarz...', 'warn');
+
+            try {
+                const response = await fetch(`/calendar-preview?start_date=${startDate}&end_date=${endDate}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Błąd podglądu kalendarza.');
+                }
+
+                renderCalendarPreview(data);
+                renderDashboardFromCalendar(data);
+                if (showMessage) setMessage('Mini-kalendarz odświeżony.', 'ok');
             } catch (error) {
                 eventsContainer.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
                 setMessage(error.message, 'error');
             }
         }
 
-        function openPlanModal() {
+        function changeWeek(offset) {
+            currentWeekStart = addDays(currentWeekStart, offset * 7);
+            loadCalendarPreview();
+        }
+
+        function goToCurrentWeek() {
+            currentWeekStart = getStartOfWeek(new Date());
+            loadCalendarPreview();
+        }
+
+        function renderCalendarPreview(data) {
+            const days = data.days || [];
+            if (days.length === 0) {
+                eventsContainer.innerHTML = '<div class="empty">Brak dni do pokazania.</div>';
+                return;
+            }
+
+            const todayKey = toDateInputValue(new Date());
+            const cards = days.map(day => {
+                const items = day.items || [];
+                const visibleItems = items.slice(0, 6);
+                const hiddenCount = Math.max(0, items.length - visibleItems.length);
+
+                const pills = visibleItems.map(item => {
+                    const isStudy = item.type === 'study_block';
+                    const typeBadge = isStudy
+                        ? '<span class="badge study-badge">Nauka</span>'
+                        : '<span class="badge calendar-badge">Kalendarz</span>';
+                    const doneBadge = isStudy
+                        ? (item.done ? '<span class="badge ok-badge">zrobione</span>' : '<span class="badge">do zrobienia</span>')
+                        : '';
+                    const googleBadge = isStudy
+                        ? (item.pushed_to_google ? '<span class="badge ok-badge">Google</span>' : '<span class="badge warn-badge">lokalny</span>')
+                        : '';
+
+                    return `
+                            <div class="event-pill ${isStudy ? 'study' : ''}" title="${escapeHtml(item.title)}">
+                                <div class="event-time">${escapeHtml(formatTimeRange(item.start_time, item.end_time))}</div>
+                                <div class="event-title">${escapeHtml(item.title)}</div>
+                                <div>${typeBadge}${googleBadge}${doneBadge}</div>
+                                ${item.location ? `<div class="small">${escapeHtml(item.location)}</div>` : ''}
+                            </div>
+                        `;
+                }).join('');
+
+                return `
+                        <div class="day-card ${day.date === todayKey ? 'today-card' : ''}">
+                            <div class="day-title">${escapeHtml(formatShortDate(day.date))}</div>
+                            ${pills || '<div class="small">Brak wydarzeń.</div>'}
+                            ${hiddenCount ? `<div class="small">+ ${hiddenCount} więcej tego dnia</div>` : ''}
+                        </div>
+                    `;
+            }).join('');
+
+            eventsContainer.innerHTML = `
+                    <div class="small">
+                        W tym tygodniu: <strong>${escapeHtml(data.calendar_events_count)}</strong> wydarzeń z kalendarza,
+                        <strong>${escapeHtml(data.study_blocks_count)}</strong> bloków nauki.
+                    </div>
+                    <div class="week-grid">${cards}</div>
+                `;
+        }
+
+        function renderDashboardFromCalendar(data) {
+            const todayKey = toDateInputValue(new Date());
+            const allItems = (data.days || []).flatMap(day => day.items || []);
+            const todayItems = allItems.filter(item => String(item.start_time || '').startsWith(todayKey));
+            const upcomingBlocks = allItems
+                .filter(item => item.type === 'study_block' && new Date(item.start_time) >= new Date())
+                .sort((a, b) => String(a.start_time).localeCompare(String(b.start_time)))
+                .slice(0, 3);
+
+            dashboardToday.innerHTML = todayItems.length
+                ? todayItems.slice(0, 4).map(item => `
+                        <div class="mini-list-item">
+                            <strong>${escapeHtml(formatTimeRange(item.start_time, item.end_time))}</strong><br>
+                            ${escapeHtml(item.title)}
+                        </div>
+                    `).join('')
+                : 'Brak wydarzeń na dzisiaj w aktualnym tygodniu.';
+
+            dashboardUpcoming.innerHTML = upcomingBlocks.length
+                ? upcomingBlocks.map(item => `
+                        <div class="mini-list-item">
+                            <strong>${escapeHtml(formatShortDate(item.start_time))} ${escapeHtml(formatTimeRange(item.start_time, item.end_time))}</strong><br>
+                            ${escapeHtml(item.title)}
+                        </div>
+                    `).join('')
+                : 'Brak nadchodzących bloków nauki w aktualnym tygodniu.';
+        }
+
+        async function openPlanModal() {
             document.getElementById('plan-modal').style.display = 'block';
+            await loadParticipants();
         }
 
         function closePlanModal() {
@@ -306,8 +1667,11 @@
 
         function getPlanPayload() {
             return {
+                block_name: document.getElementById('block_name').value || 'Nauka',
                 total_hours: document.getElementById('total_hours').value,
-                deadline_str: document.getElementById('deadline_str').value.replace('T', ' ')
+                deadline_str: document.getElementById('deadline_str').value.replace('T', ' '),
+                study_location: document.getElementById('plan_study_location').value,
+                participant_user_ids: getSelectedParticipantIds()
             };
         }
 
@@ -325,6 +1689,11 @@
                 document.getElementById('pref_block_minutes').value = data.block_minutes;
                 document.getElementById('pref_break_minutes').value = data.break_minutes;
                 document.getElementById('pref_max_daily_minutes').value = data.max_daily_study_minutes;
+                document.getElementById('pref_solo_mode').value = data.solo_preference_mode || 'hard';
+                document.getElementById('pref_group_mode').value = data.group_preference_mode || 'hard';
+                document.getElementById('pref_commute_buffer').value = Number.isFinite(Number(data.commute_extra_buffer_minutes))
+                    ? data.commute_extra_buffer_minutes
+                    : 10;
             } catch (error) {
                 setMessage(error.message, 'error');
             }
@@ -341,7 +1710,10 @@
                     preferred_end_hour: document.getElementById('pref_end_hour').value,
                     block_minutes: document.getElementById('pref_block_minutes').value,
                     break_minutes: document.getElementById('pref_break_minutes').value,
-                    max_daily_study_minutes: document.getElementById('pref_max_daily_minutes').value
+                    max_daily_study_minutes: document.getElementById('pref_max_daily_minutes').value,
+                    solo_preference_mode: document.getElementById('pref_solo_mode').value,
+                    group_preference_mode: document.getElementById('pref_group_mode').value,
+                    commute_extra_buffer_minutes: document.getElementById('pref_commute_buffer').value
                 };
 
                 const response = await fetch('/preferences', {
@@ -367,11 +1739,13 @@
         }
 
         async function generatePlan() {
+            const payload = getPlanPayload();
+
             try {
                 const response = await fetch('/plan-study', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(getPlanPayload())
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -380,9 +1754,10 @@
                     throw new Error(data.detail || 'Błąd generowania planu.');
                 }
 
-                renderPlan(data);
-                setMessage('Plan wygenerowany z danych z bazy i zapisanych preferencji.', 'ok');
                 closePlanModal();
+                await loadStudyPlans(data.plan.id);
+                await loadCalendarPreview(false);
+                setMessage(`Plan „${data.plan.name}” został zapisany w bazie.`, 'ok');
             } catch (error) {
                 setMessage(error.message, 'error');
             }
@@ -390,6 +1765,8 @@
 
         async function generateAndPushPlan() {
             const pushBtn = document.getElementById('push-plan-btn');
+            const payload = getPlanPayload();
+
             pushBtn.disabled = true;
             pushBtn.textContent = 'Wysyłam...';
 
@@ -397,7 +1774,7 @@
                 const response = await fetch('/plan-study/push', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(getPlanPayload())
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -407,97 +1784,20 @@
                 }
 
                 closePlanModal();
+                await loadStudyPlans(data.plan.id);
+                await loadCalendarPreview(false);
 
                 if (data.skipped_count && data.skipped_count > 0) {
-                    setMessage(
-                        `Dodano ${data.pushed_count} bloków. Pominięto ${data.skipped_count}, bo już istniały.`,
-                        'warn'
-                    );
+                    setMessage(`Zapisano plan. Dodano ${data.pushed_count} bloków do Google, pominięto ${data.skipped_count}.`, 'warn');
                 } else {
-                    setMessage(
-                        `Dodano ${data.pushed_count} bloków do Google i zapisano je w bazie.`,
-                        'ok'
-                    );
+                    setMessage(`Zapisano plan i dodano ${data.pushed_count} bloków do Google.`, 'ok');
                 }
-
-                await loadEventsFromDb();
             } catch (error) {
                 setMessage(error.message, 'error');
             } finally {
                 pushBtn.disabled = false;
-                pushBtn.textContent = 'Wyślij plan do Google';
+                pushBtn.textContent = 'Zapisz i wyślij do Google';
             }
-        }
-
-        function renderEvents(events) {
-            if (!events || events.length === 0) {
-                eventsContainer.innerHTML = '<div class="empty">Brak wydarzeń.</div>';
-                return;
-            }
-
-            const rows = events.map(event => `
-                    <tr>
-                        <td>${escapeHtml(event.google_event_id || event.id || '-')}</td>
-                        <td>${escapeHtml(event.title || event.summary || '(bez nazwy)')}</td>
-                        <td>${escapeHtml(event.start_time || event.start || '')}</td>
-                        <td>${escapeHtml(event.end_time || event.end || '')}</td>
-                        <td>${escapeHtml(event.location || '')}</td>
-                    </tr>
-                `).join('');
-
-            eventsContainer.innerHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Google ID</th>
-                                <th>Nazwa</th>
-                                <th>Start</th>
-                                <th>Koniec</th>
-                                <th>Lokalizacja</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                `;
-        }
-
-        function renderPlan(plan) {
-            if (!plan || plan.length === 0) {
-                eventsContainer.innerHTML = '<div class="empty">Nie udało się wygenerować żadnego planu.</div>';
-                return;
-            }
-
-            const rows = plan.map(block => `
-                    <tr>
-                        <td>${escapeHtml(block.date)}</td>
-                        <td>${escapeHtml(block.start)}</td>
-                        <td>${escapeHtml(block.end)}</td>
-                        <td>${escapeHtml(block.duration_min)}</td>
-                    </tr>
-                `).join('');
-
-            eventsContainer.innerHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Start</th>
-                                <th>Koniec</th>
-                                <th>Czas trwania [min]</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                `;
-        }
-
-        function escapeHtml(value) {
-            return String(value)
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#039;');
         }
 
         function handleQueryMessage() {
@@ -515,8 +1815,16 @@
             }
         }
 
-        handleQueryMessage();
-        checkStatus();
+        async function initPage() {
+            handleQueryMessage();
+            setStatsThisWeek();
+            resetStatsView();
+            await checkStatus();
+            await loadStudyPlans();
+            await loadCalendarPreview(false);
+        }
+
+        initPage();
     </script>
 </body>
 </html>

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, RedirectResponse
+import time
 
 from Google_auth import (
     clear_credentials,
@@ -11,11 +12,17 @@ from Google_auth import (
     is_authenticated,
 )
 from Google_calendar_api import get_events, reset_sync_token, sync_events
-from Study_planner import (
+from Study_planner_Extended import (
     delete_plan_from_google,
     generate_study_plan_for_users,
     save_blocks_to_google,
     sync_plan_google_state,
+)
+
+from Study_planner_Basic import (
+    generate_study_plan_for_users_basic,
+    save_blocks_to_google_basic,
+    sync_plan_google_state_basic,
 )
 from db import (
     cleanup_local_users,
@@ -40,6 +47,11 @@ from db import (
     set_study_block_done,
     set_study_plan_pushed,
     user_exists,
+    get_user_notifications,
+    mark_notification_as_read,
+    mark_all_notifications_as_read,
+    notify_participants_about_new_plan,
+    auto_sync_calendar_after_push,
 )
 
 app = FastAPI(title="Study Planner", version="1.2.0")
@@ -378,6 +390,22 @@ def push_existing_study_plan(plan_id: int, request: Request, response: Response)
 
         refreshed_plan = sync_plan_google_state(user_id, plan_id)["plan"]
 
+        # Automatyczna synchronizacja bazy po wysłaniu do Google
+        try:
+            sync_result = auto_sync_calendar_after_push(user_id, plan_id)
+            if not sync_result.get("success"):
+                print(f"[WARNING] Auto-sync failed: {sync_result.get('message')}")
+        except Exception as e:
+            print(f"[ERROR] Auto-sync exception: {e}")
+
+        # Powiadomienia dla uczestników
+        try:
+            plan_title = plan.get("title") or "Plan nauki"
+            notify_participants_about_new_plan(plan_id, user_id, plan_title)
+            print(f"[NOTIFICATIONS] ✓ Powiadomienia wysłane dla planu {plan_id}")
+        except Exception as e:
+            print(f"[ERROR] Notifications failed: {e}")
+
         return {
             "message": "Wybrany plan został przetworzony.",
             "pushed_count": len(result["pushed"]),
@@ -515,27 +543,82 @@ def plan_study(data: dict, request: Request, response: Response):
         block_name = data.get("block_name") or "Nauka"
         total_hours = int(data.get("total_hours"))
         deadline_str = data.get("deadline_str")
+        algorytm_complex = data.get("Algorytm_complex")
         study_location = str(data.get("study_location") or "").strip()
         participant_user_ids = normalize_participant_user_ids(user_id, data.get("participant_user_ids") or [user_id])
-
-        plan = generate_study_plan_for_users(
-            owner_user_id=user_id,
-            participant_user_ids=participant_user_ids,
-            total_hours=total_hours,
-            deadline_str=deadline_str,
-            location=study_location
-        )
-        return save_study_blocks(
-            user_id,
-            plan,
-            block_name,
-            total_hours,
-            deadline_str,
-            participant_user_ids,
-            study_location=study_location,
-        )
+        start = time.perf_counter()
+        if algorytm_complex=="basic":
+            plan = generate_study_plan_for_users_basic(
+                owner_user_id=user_id,
+                participant_user_ids=participant_user_ids,
+                total_hours=total_hours,
+                deadline_str=deadline_str,
+                location=study_location
+            )
+            end = time.perf_counter()
+            print(f"Wygenerowanie plany w trybie Basic zajeło:{(end - start) * 1000:.2f} ms")
+            return save_study_blocks(
+                user_id,
+                plan,
+                block_name,
+                total_hours,
+                deadline_str,
+                participant_user_ids,
+                study_location=study_location,
+            )
+        elif algorytm_complex=="extended":
+            plan = generate_study_plan_for_users(
+                owner_user_id=user_id,
+                participant_user_ids=participant_user_ids,
+                total_hours=total_hours,
+                deadline_str=deadline_str,
+                location=study_location
+            )
+            end = time.perf_counter()
+            print(f"Wygenerowanie plany w trybie Extended zajeło:{(end - start) * 1000:.2f} ms")
+            return save_study_blocks(
+                user_id,
+                plan,
+                block_name,
+                total_hours,
+                deadline_str,
+                participant_user_ids,
+                study_location=study_location,
+            )
     except Exception as error:
         raise HTTPException(status_code=500, detail=f"Błąd generowania planu: {error}") from error
+
+
+@app.get("/notifications")
+def notifications(request: Request, response: Response, unread_only: bool = False):
+    user_id = get_current_user_id(request, response)
+
+    try:
+        return get_user_notifications(user_id, unread_only)
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Błąd odczytu powiadomień: {error}") from error
+
+
+@app.post("/notifications/{notification_id}/read")
+def mark_notification_read(notification_id: int, request: Request, response: Response):
+    user_id = get_current_user_id(request, response)
+
+    try:
+        mark_notification_as_read(user_id, notification_id)
+        return {"message": "Powiadomienie oznaczone jako przeczytane"}
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Błąd oznaczania powiadomienia: {error}") from error
+
+
+@app.post("/notifications/read-all")
+def mark_all_notifications_read(request: Request, response: Response):
+    user_id = get_current_user_id(request, response)
+
+    try:
+        mark_all_notifications_as_read(user_id)
+        return {"message": "Wszystkie powiadomienia oznaczone jako przeczytane"}
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Błąd oznaczania powiadomień: {error}") from error
 
 
 @app.post("/plan-study/push")
@@ -545,39 +628,114 @@ def plan_study_and_push(data: dict, request: Request, response: Response):
     try:
         block_name = data.get("block_name") or "Nauka"
         total_hours = int(data.get("total_hours"))
+        algorytm_complex=data.get("Algorytm_complex")
         deadline_str = data.get("deadline_str")
         study_location = str(data.get("study_location") or "").strip()
         participant_user_ids = normalize_participant_user_ids(user_id, data.get("participant_user_ids") or [user_id])
+        start = time.perf_counter()
+        print(f"Test dla plany o liczbie godzin:{total_hours} i deadline{deadline_str} dla algorytmu {algorytm_complex}")
+        if algorytm_complex=="basic":
+            plan = generate_study_plan_for_users_basic(
+                owner_user_id=user_id,
+                participant_user_ids=participant_user_ids,
+                total_hours=total_hours,
+                deadline_str=deadline_str,
+                location=study_location,
+            )
+            end=time.perf_counter()
+            print(f"Wygenerowanie plany w trybie Basic zajeło:{(end - start) * 1000:.2f} ms")
+            saved = save_study_blocks(
+                user_id,
+                plan,
+                block_name,
+                total_hours,
+                deadline_str,
+                participant_user_ids,
+                study_location=study_location,
+            )
+            plan_id = saved["plan"]["id"]
+            start = time.perf_counter()
+            result = save_blocks_to_google_basic(user_id, saved["blocks"])
+            end = time.perf_counter()
+            print(f"Wysłanie plany do Google zajeło:{(end - start) * 1000:.2f} ms")
+            refreshed_blocks = get_study_blocks_by_plan(user_id, plan_id)
 
-        plan = generate_study_plan_for_users(
-            owner_user_id=user_id,
-            participant_user_ids=participant_user_ids,
-            total_hours=total_hours,
-            deadline_str=deadline_str,
-            location=study_location,
-        )
-        saved = save_study_blocks(
-            user_id,
-            plan,
-            block_name,
-            total_hours,
-            deadline_str,
-            participant_user_ids,
-            study_location=study_location,
-        )
-        plan_id = saved["plan"]["id"]
-        result = save_blocks_to_google(user_id, saved["blocks"])
-        refreshed_blocks = get_study_blocks_by_plan(user_id, plan_id)
+            refreshed_plan = sync_plan_google_state_basic(user_id, plan_id)["plan"]
 
-        refreshed_plan = sync_plan_google_state(user_id, plan_id)["plan"]
+            # Automatyczna synchronizacja bazy po wysłaniu do Google
+            try:
+                sync_result = auto_sync_calendar_after_push(user_id, plan_id)
+                if not sync_result.get("success"):
+                    print(f"[WARNING] Auto-sync failed: {sync_result.get('message')}")
+            except Exception as e:
+                print(f"[ERROR] Auto-sync exception: {e}")
 
-        return {
-            "message": "Plan został przetworzony.",
-            "pushed_count": len(result["pushed"]),
-            "skipped_count": len(result["skipped"]),
-            "plan": refreshed_plan,
-            "blocks": refreshed_blocks,
-        }
+            # Powiadomienia dla uczestników
+            try:
+                notify_participants_about_new_plan(plan_id, user_id, block_name)
+                print(f"[NOTIFICATIONS] ✓ Powiadomienia wysłane dla planu {plan_id}")
+            except Exception as e:
+                print(f"[ERROR] Notifications failed: {e}")
+
+            return {
+                "message": "Plan został przetworzony.",
+                "pushed_count": len(result["pushed"]),
+                "skipped_count": len(result["skipped"]),
+                "plan": refreshed_plan,
+                "blocks": refreshed_blocks,
+            }
+        elif algorytm_complex=="extended":
+            plan = generate_study_plan_for_users(
+                owner_user_id=user_id,
+                participant_user_ids=participant_user_ids,
+                total_hours=total_hours,
+                deadline_str=deadline_str,
+                location=study_location,
+            )
+            end = time.perf_counter()
+            print(f"Wygenerowanie plany w trybie extended zajeło:{(end - start) * 1000:.2f} ms")
+            saved = save_study_blocks(
+                user_id,
+                plan,
+                block_name,
+                total_hours,
+                deadline_str,
+                participant_user_ids,
+                study_location=study_location,
+            )
+            plan_id = saved["plan"]["id"]
+
+            start = time.perf_counter()
+            result = save_blocks_to_google(user_id, saved["blocks"])
+            end = time.perf_counter()
+            print(f"Wysłanie plany do Google zajeło:{(end - start) * 1000:.2f} ms")
+            refreshed_blocks = get_study_blocks_by_plan(user_id, plan_id)
+
+            refreshed_plan = sync_plan_google_state(user_id, plan_id)["plan"]
+
+            # Automatyczna synchronizacja bazy po wysłaniu do Google
+            try:
+                sync_result = auto_sync_calendar_after_push(user_id, plan_id)
+                if not sync_result.get("success"):
+                    print(f"[WARNING] Auto-sync failed: {sync_result.get('message')}")
+            except Exception as e:
+                print(f"[ERROR] Auto-sync exception: {e}")
+
+            # Powiadomienia dla uczestników
+            try:
+                notify_participants_about_new_plan(plan_id, user_id, block_name)
+                print(f"[NOTIFICATIONS] ✓ Powiadomienia wysłane dla planu {plan_id}")
+            except Exception as e:
+                print(f"[ERROR] Notifications failed: {e}")
+
+            return {
+                "message": "Plan został przetworzony.",
+                "pushed_count": len(result["pushed"]),
+                "skipped_count": len(result["skipped"]),
+                "plan": refreshed_plan,
+                "blocks": refreshed_blocks,
+            }
+
     except HTTPException:
         raise
     except RuntimeError as error:

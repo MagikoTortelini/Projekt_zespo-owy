@@ -73,6 +73,25 @@ def create_google_credentials_table(conn):
     )
 
 
+def create_notifications_table(conn):
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            plan_id INTEGER,
+            read BOOLEAN NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (plan_id) REFERENCES study_plans(id) ON DELETE CASCADE
+        )
+        """
+    )
+
+
 def normalize_optional_text(value):
     value = (value or "").strip()
     return value or None
@@ -127,6 +146,7 @@ def init_db():
         migrate_user_preferences(conn)
         migrate_calendar_events(conn)
         migrate_study_plans_and_blocks(conn)
+        create_notifications_table(conn)
 
         conn.commit()
 
@@ -1666,3 +1686,114 @@ def cleanup_local_users():
         conn.commit()
 
     return {"deleted_users": len(user_ids), "deleted_user_ids": user_ids}
+
+
+def create_notification(user_id: int, notification_type: str, title: str, message: str, plan_id: int | None = None):
+    """Tworzy powiadomienie dla użytkownika."""
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO notifications (user_id, type, title, message, plan_id)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (user_id, notification_type, title, message, plan_id),
+        )
+        conn.commit()
+
+
+def get_user_notifications(user_id: int, unread_only: bool = False):
+    """Pobiera powiadomienia użytkownika."""
+    with get_connection() as conn:
+        query = """
+            SELECT id, user_id, type, title, message, plan_id, read, created_at
+            FROM notifications
+            WHERE user_id = ?
+        """
+        if unread_only:
+            query += " AND read = 0"
+        query += " ORDER BY created_at DESC"
+
+        rows = conn.execute(query, (user_id,)).fetchall()
+        return [dict(row) for row in rows]
+
+
+def mark_notification_as_read(user_id: int, notification_id: int):
+    """Oznacza powiadomienie jako przeczytane."""
+    with get_connection() as conn:
+        conn.execute(
+            """
+            UPDATE notifications
+            SET read = 1
+            WHERE id = ? AND user_id = ?
+            """,
+            (notification_id, user_id),
+        )
+        conn.commit()
+
+
+def mark_all_notifications_as_read(user_id: int):
+    """Oznacza wszystkie powiadomienia użytkownika jako przeczytane."""
+    with get_connection() as conn:
+        conn.execute(
+            """
+            UPDATE notifications
+            SET read = 1
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+        conn.commit()
+
+
+def notify_participants_about_new_plan(plan_id: int, owner_user_id: int, plan_title: str):
+    """Tworzy powiadomienia dla wszystkich uczestników nowego planu (oprócz właściciela)."""
+    try:
+        participants = get_plan_participants(plan_id)
+        print(f"[NOTIFY] Plan {plan_id} ma {len(participants)} uczestników")
+
+        owner = get_user(owner_user_id)
+        owner_name = owner.get("display_name") or owner.get("email") or f"Użytkownik {owner_user_id}"
+
+        notification_count = 0
+        for participant in participants:
+            participant_id = int(participant["id"])
+            if participant_id != owner_user_id:
+                create_notification(
+                    user_id=participant_id,
+                    notification_type="new_plan",
+                    title="Nowy plan nauki",
+                    message=f"{owner_name} dodał Cię do planu: {plan_title}",
+                    plan_id=plan_id,
+                )
+                notification_count += 1
+                print(f"[NOTIFY] ✓ Utworzono powiadomienie dla user_id={participant_id}")
+
+        print(f"[NOTIFY] ✓ Utworzono {notification_count} powiadomień dla planu {plan_id}")
+    except Exception as e:
+        print(f"[NOTIFY] ✗ Błąd: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+
+
+def auto_sync_calendar_after_push(user_id: int, plan_id: int):
+    """Automatycznie synchronizuje bazę danych po wysłaniu planu do Google Calendar."""
+    try:
+        from Google_calendar_api import get_events
+
+        # Pobierz świeże wydarzenia z Google Calendar
+        events = get_events(user_id)
+
+        # Zaktualizuj bazę danych (dodaj nowe wydarzenia)
+        insert_imported_events(user_id, events)
+
+        # Odśwież status planu
+        refresh_study_plan_google_status(user_id, plan_id)
+
+        print(f"[AUTO-SYNC] ✓ Zaktualizowano bazę dla user_id={user_id}, plan_id={plan_id}")
+        return {"success": True, "message": "Baza została automatycznie zaktualizowana"}
+    except Exception as e:
+        print(f"[AUTO-SYNC] ✗ Błąd dla user_id={user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "message": f"Błąd automatycznej synchronizacji: {e}"}

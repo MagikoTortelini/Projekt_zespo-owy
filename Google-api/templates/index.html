@@ -155,6 +155,30 @@
             z-index: 999;
         }
 
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #111827;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
             .modal input {
                 width: 100%;
             }
@@ -872,6 +896,7 @@
         </header>
 
         <div id="plan-modal" class="modal">
+            <button class="modal-close" type="button" onclick="closePlanModal()" aria-label="Zamknij generowanie planu" title="Zamknij">X</button>
             <h3>Generowanie planu</h3>
 
             <label class="field-label" for="block_name">Nazwa planu / bloków</label>
@@ -883,7 +908,7 @@
             <label class="field-label" for="Algorytm_complex">Rodzaj Algorytmu</label>
             <select id="Algorytm_complex">
                 <option value="basic">Podstawowy</option>
-                <option value="extended">Rozszerzony</option>
+                <option value="extended">Punktowy</option>
             </select><br><br>
 
             <label class="field-label" for="deadline_str">Deadline</label>
@@ -2265,6 +2290,7 @@
         // ========== Powiadomienia ==========
         let notificationInterval = null;
         let lastNotificationCount = 0;
+        let studyPlansLoading = false;
 
         async function loadNotifications() {
             try {
@@ -2300,7 +2326,7 @@
             `).join('');
         }
 
-        function updateNotificationBadge(notifications) {
+        async function updateNotificationBadge(notifications) {
             const badge = document.getElementById('notification-badge');
             const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -2311,6 +2337,17 @@
                 // Odtwórz dźwięk jeśli liczba wzrosła
                 if (unreadCount > lastNotificationCount) {
                     playNotificationSound();
+                     try {
+                        if (!studyPlansLoading) {
+                            studyPlansLoading = true;
+                            await loadStudyPlans();
+                        }
+                     } catch (e) {
+                        console.error('Błąd odświeżania planów:', e);
+                     } finally {
+                        studyPlansLoading = false;
+                     }
+
                 }
 
                 lastNotificationCount = unreadCount;

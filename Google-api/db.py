@@ -739,6 +739,48 @@ def get_user_preferences(user_id: int):
     return dict(row) if row else dict(DEFAULT_PREFERENCES)
 
 
+def get_group_planning_preferences(owner_user_id: int, participant_user_ids: list[int] | None):
+    participant_ids = normalize_participant_user_ids(owner_user_id, participant_user_ids)
+    preferences_by_user = [get_user_preferences(user_id) for user_id in participant_ids]
+
+    if not preferences_by_user:
+        return dict(DEFAULT_PREFERENCES)
+
+    owner_preferences = preferences_by_user[0]
+    is_group = len(participant_ids) > 1
+
+    combined = dict(owner_preferences)
+    combined["preferred_start_hour"] = max(
+        int(preferences["preferred_start_hour"]) for preferences in preferences_by_user
+    )
+    combined["preferred_end_hour"] = min(
+        int(preferences["preferred_end_hour"]) for preferences in preferences_by_user
+    )
+    combined["block_minutes"] = min(
+        int(preferences["block_minutes"]) for preferences in preferences_by_user
+    )
+    combined["break_minutes"] = max(
+        int(preferences["break_minutes"]) for preferences in preferences_by_user
+    )
+    combined["max_daily_study_minutes"] = min(
+        int(preferences["max_daily_study_minutes"]) for preferences in preferences_by_user
+    )
+    combined["commute_extra_buffer_minutes"] = max(
+        int(preferences["commute_extra_buffer_minutes"]) for preferences in preferences_by_user
+    )
+
+    if is_group:
+        group_modes = [
+            normalize_preference_mode(preferences.get("group_preference_mode"))
+            for preferences in preferences_by_user
+        ]
+        combined["group_preference_mode"] = "soft" if all(mode == "soft" for mode in group_modes) else "hard"
+    else:
+        combined["solo_preference_mode"] = normalize_preference_mode(owner_preferences.get("solo_preference_mode"))
+
+    return combined
+
+
 def save_user_preferences(user_id: int, preferences: dict):
     study_location = str(preferences.get("study_location", "")).strip()
     solo_preference_mode = normalize_preference_mode(preferences.get("solo_preference_mode"))

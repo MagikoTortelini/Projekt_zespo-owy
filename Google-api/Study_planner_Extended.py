@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 from Map_distance_API import Distance_and_tiem
 
 from Google_calendar_api import add_event, delete_google_event, google_event_exists
-from db import get_user_preferences
+from db import get_group_planning_preferences
 
 TIMEZONE = ZoneInfo("Europe/Warsaw")
 SEARCH_STEP_MINUTES = 15
@@ -128,72 +128,63 @@ def overlaps(start1: datetime, end1: datetime, start2: datetime, end2: datetime)
 
 
 def is_free(
-        extra_break_minutes,
         candidate_start: datetime,
         candidate_end: datetime,
         candidate_location: str,
         busy_slots: list[dict],
+        commute_extra_buffer_minutes: int,
+        break_minutes: int,  # <--- Dodane preferencje przerwy po bloku nauki
 ) -> bool:
-    car_speed_m_s = 8.3
-
-
+    car_speed_m_s=8.3
     for slot in busy_slots:
         slot_start = slot["start"]
         slot_end = slot["end"]
         slot_location = slot.get("location", "")
 
+        # Podstawowe nakładanie się slotów
         if overlaps(candidate_start, candidate_end, slot_start, slot_end):
             return False
 
         if not slot_location or not candidate_location:
             continue
 
+        # Logika dla wydarzenia, które kończy się przed naszym kandydatem
         if slot_end <= candidate_start:
             result = get_cached_distance_and_time(slot_location, candidate_location)
-
-            if result is None:
-                continue
-            else:
-                distance, travel_seconds = result
-
-                if distance > 2000:
-                    travel_seconds = int(distance / car_speed_m_s)
-
-                if distance > 200:
-                    arrival_time = (
-                            slot_end
-                            + timedelta(seconds=travel_seconds)
-                            + timedelta(minutes=extra_break_minutes)
-                    )
-                else:
-                    arrival_time = slot_end + timedelta(seconds=travel_seconds)
-
-                if arrival_time > candidate_start:
-                    return False
-
-        if candidate_end <= slot_start:
-            result = get_cached_distance_and_time(candidate_location, slot_location)
-
             if result is None:
                 continue
 
             distance, travel_seconds = result
-
             if distance > 2000:
                 travel_seconds = int(distance / car_speed_m_s)
 
-            if distance > 200:
-                leave_time = (
-                        candidate_end
-                        + timedelta(seconds=travel_seconds)
-                        + timedelta(minutes=extra_break_minutes)
-                )
-            else:
-                leave_time = candidate_end + timedelta(seconds=travel_seconds)
+            # Uwzględniamy bufor dojazdu oraz preferowaną przerwę użytkownika po bloku (jeśli to był study_block)
+            total_buffer = commute_extra_buffer_minutes if distance > 200 else 0
+            if slot.get("source") in {"study_block", "planned_study"}:
+                total_buffer += break_minutes
 
-            if leave_time > slot_start:
+            arrival_time = slot_end + timedelta(seconds=travel_seconds) + timedelta(minutes=total_buffer)
+            if arrival_time > candidate_start:
                 return False
 
+        # Logika dla wydarzenia, które zaczyna się po naszym kandydacie
+        if candidate_end <= slot_start:
+            result = get_cached_distance_and_time(candidate_location, slot_location)
+            if result is None:
+                continue
+
+            distance, travel_seconds = result
+            if distance > 2000:
+                travel_seconds = int(distance / car_speed_m_s)
+
+            # Idąc na kolejne zajęcia, kandydat potrzebuje czasu na dojazd + ewentualny bufor
+            total_buffer = commute_extra_buffer_minutes if distance > 200 else 0
+            # Dodatkowo nasz kandydat potrzebuje własnej przerwy po nauce zanim w ogóle zacznie jechać
+            total_buffer += break_minutes
+
+            leave_time = candidate_end + timedelta(seconds=travel_seconds) + timedelta(minutes=total_buffer)
+            if leave_time > slot_start:
+                return False
     return True
 
 
@@ -451,19 +442,14 @@ def generate_study_plan_for_users(
     from db import get_calendar_events_for_users, get_study_blocks, normalize_participant_user_ids
 
     participant_ids = normalize_participant_user_ids(owner_user_id, participant_user_ids)
-    preferences = get_user_preferences(owner_user_id)
+    preferences = get_group_planning_preferences(owner_user_id, participant_ids)
 
     preferred_start_hour = int(preferences["preferred_start_hour"])
     preferred_end_hour = int(preferences["preferred_end_hour"])
-    commute_extra_buffer_minutes=0
-    for p_id in participant_ids:
-        preferences=get_user_preferences(p_id)
-        buffor=int(preferences["commute_extra_buffer_minutes"])
-        if buffor>commute_extra_buffer_minutes:
-            commute_extra_buffer_minutes=buffor
     block_minutes = int(preferences["block_minutes"])
     break_minutes = int(preferences["break_minutes"])
     max_daily_study_minutes = int(preferences["max_daily_study_minutes"])
+    commute_extra_buffer_minutes = int(preferences["commute_extra_buffer_minutes"])
 
     # WYMUSZENIE SIATKI 15 MINUT: Zaokrąglamy czas trwania przerwy w górę do wielokrotności SEARCH_STEP_MINUTES
     if break_minutes > 0 and break_minutes % SEARCH_STEP_MINUTES != 0:
@@ -534,11 +520,12 @@ def generate_study_plan_for_users(
                 break
 
             if is_free(
-                    extra_break_minutes=commute_extra_buffer_minutes,
                     candidate_start=t,
                     candidate_end=cand_end,
                     candidate_location=location,
                     busy_slots=day_busy_slots,
+                    commute_extra_buffer_minutes=commute_extra_buffer_minutes,
+                    break_minutes=break_minutes
             ):
                 sc = score_slot(
                     t,

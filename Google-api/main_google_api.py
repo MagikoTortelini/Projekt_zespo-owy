@@ -3,7 +3,6 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse, RedirectResponse
-import time
 
 from Google_auth import (
     clear_credentials,
@@ -546,7 +545,6 @@ def plan_study(data: dict, request: Request, response: Response):
         algorytm_complex = data.get("Algorytm_complex")
         study_location = str(data.get("study_location") or "").strip()
         participant_user_ids = normalize_participant_user_ids(user_id, data.get("participant_user_ids") or [user_id])
-        start = time.perf_counter()
         if algorytm_complex=="basic":
             plan = generate_study_plan_for_users_basic(
                 owner_user_id=user_id,
@@ -555,8 +553,6 @@ def plan_study(data: dict, request: Request, response: Response):
                 deadline_str=deadline_str,
                 location=study_location
             )
-            end = time.perf_counter()
-            print(f"Wygenerowanie plany w trybie Basic zajeło:{(end - start) * 1000:.2f} ms")
             return save_study_blocks(
                 user_id,
                 plan,
@@ -574,8 +570,6 @@ def plan_study(data: dict, request: Request, response: Response):
                 deadline_str=deadline_str,
                 location=study_location
             )
-            end = time.perf_counter()
-            print(f"Wygenerowanie plany w trybie Extended zajeło:{(end - start) * 1000:.2f} ms")
             return save_study_blocks(
                 user_id,
                 plan,
@@ -632,8 +626,6 @@ def plan_study_and_push(data: dict, request: Request, response: Response):
         deadline_str = data.get("deadline_str")
         study_location = str(data.get("study_location") or "").strip()
         participant_user_ids = normalize_participant_user_ids(user_id, data.get("participant_user_ids") or [user_id])
-        start = time.perf_counter()
-        print(f"Test dla plany o liczbie godzin:{total_hours} i deadline{deadline_str} dla algorytmu {algorytm_complex}")
         if algorytm_complex=="basic":
             plan = generate_study_plan_for_users_basic(
                 owner_user_id=user_id,
@@ -642,8 +634,6 @@ def plan_study_and_push(data: dict, request: Request, response: Response):
                 deadline_str=deadline_str,
                 location=study_location,
             )
-            end=time.perf_counter()
-            print(f"Wygenerowanie plany w trybie Basic zajeło:{(end - start) * 1000:.2f} ms")
             saved = save_study_blocks(
                 user_id,
                 plan,
@@ -654,10 +644,7 @@ def plan_study_and_push(data: dict, request: Request, response: Response):
                 study_location=study_location,
             )
             plan_id = saved["plan"]["id"]
-            start = time.perf_counter()
             result = save_blocks_to_google_basic(user_id, saved["blocks"])
-            end = time.perf_counter()
-            print(f"Wysłanie plany do Google zajeło:{(end - start) * 1000:.2f} ms")
             refreshed_blocks = get_study_blocks_by_plan(user_id, plan_id)
 
             refreshed_plan = sync_plan_google_state_basic(user_id, plan_id)["plan"]
@@ -692,8 +679,6 @@ def plan_study_and_push(data: dict, request: Request, response: Response):
                 deadline_str=deadline_str,
                 location=study_location,
             )
-            end = time.perf_counter()
-            print(f"Wygenerowanie plany w trybie extended zajeło:{(end - start) * 1000:.2f} ms")
             saved = save_study_blocks(
                 user_id,
                 plan,
@@ -704,11 +689,7 @@ def plan_study_and_push(data: dict, request: Request, response: Response):
                 study_location=study_location,
             )
             plan_id = saved["plan"]["id"]
-
-            start = time.perf_counter()
             result = save_blocks_to_google(user_id, saved["blocks"])
-            end = time.perf_counter()
-            print(f"Wysłanie plany do Google zajeło:{(end - start) * 1000:.2f} ms")
             refreshed_blocks = get_study_blocks_by_plan(user_id, plan_id)
 
             refreshed_plan = sync_plan_google_state(user_id, plan_id)["plan"]

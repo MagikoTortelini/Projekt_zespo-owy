@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from Map_distance_API import Distance_and_tiem
 from Google_calendar_api import add_event, delete_google_event, google_event_exists
-from db import get_user_preferences
+from db import get_group_planning_preferences
 
 TIMEZONE = ZoneInfo("Europe/Warsaw")
 SEARCH_STEP_MINUTES = 15
@@ -94,69 +94,61 @@ def get_cached_distance_and_time(loc1: str, loc2: str):
 
 
 def is_free(
-    extra_break_minutes,
     candidate_start: datetime,
     candidate_end: datetime,
     candidate_location: str,
     busy_slots,
+    commute_extra_buffer_minutes: int,
+    break_minutes: int,
 ) -> bool:
     car_speed_m_s = 8.3
-
-
     for slot in busy_slots:
         slot_start = slot["start"]
         slot_end = slot["end"]
         slot_location = slot.get("location", "")
 
+        # Podstawowe nakładanie się slotów
         if overlaps(candidate_start, candidate_end, slot_start, slot_end):
             return False
 
         if not slot_location or not candidate_location:
             continue
 
+        # Logika dla wydarzenia, które kończy się przed naszym kandydatem
         if slot_end <= candidate_start:
             result = get_cached_distance_and_time(slot_location, candidate_location)
-
-            if result is None:
-                continue
-            else:
-                distance, travel_seconds = result
-
-                if distance > 2000:
-                    travel_seconds = int(distance / car_speed_m_s)
-
-                if distance > 200:
-                    arrival_time = (
-                        slot_end
-                        + timedelta(seconds=travel_seconds)
-                        + timedelta(minutes=extra_break_minutes)
-                    )
-                else:
-                    arrival_time = slot_end + timedelta(seconds=travel_seconds)
-
-                if arrival_time > candidate_start:
-                    return False
-
-        if candidate_end <= slot_start:
-            result = get_cached_distance_and_time(candidate_location, slot_location)
-
             if result is None:
                 continue
 
             distance, travel_seconds = result
-
             if distance > 2000:
                 travel_seconds = int(distance / car_speed_m_s)
 
-            if distance > 200:
-                leave_time = (
-                    candidate_end
-                    + timedelta(seconds=travel_seconds)
-                    + timedelta(minutes=extra_break_minutes)
-                )
-            else:
-                leave_time = candidate_end + timedelta(seconds=travel_seconds)
+            # Uwzględniamy bufor dojazdu oraz preferowaną przerwę użytkownika po bloku (jeśli to był study_block)
+            total_buffer = commute_extra_buffer_minutes if distance > 200 else 0
+            if slot.get("source") in {"study_block", "planned_study"}:
+                total_buffer += break_minutes
 
+            arrival_time = slot_end + timedelta(seconds=travel_seconds) + timedelta(minutes=total_buffer)
+            if arrival_time > candidate_start:
+                return False
+
+        # Logika dla wydarzenia, które zaczyna się po naszym kandydacie
+        if candidate_end <= slot_start:
+            result = get_cached_distance_and_time(candidate_location, slot_location)
+            if result is None:
+                continue
+
+            distance, travel_seconds = result
+            if distance > 2000:
+                travel_seconds = int(distance / car_speed_m_s)
+
+            # Idąc na kolejne zajęcia, kandydat potrzebuje czasu na dojazd + ewentualny bufor
+            total_buffer = commute_extra_buffer_minutes if distance > 200 else 0
+            # Dodatkowo nasz kandydat potrzebuje własnej przerwy po nauce zanim w ogóle zacznie jechać
+            total_buffer += break_minutes
+
+            leave_time = candidate_end + timedelta(seconds=travel_seconds) + timedelta(minutes=total_buffer)
             if leave_time > slot_start:
                 return False
 
@@ -300,7 +292,6 @@ def soft_score_sort_algorithm(candidates: list[dict]) -> list[dict]:
 
 
 def collect_candidates_for_current_state(
-    owner_user_id: int,
     participant_ids: list[int],
     preferences: dict,
     deadline: datetime,
@@ -313,13 +304,8 @@ def collect_candidates_for_current_state(
     preferred_start_hour = int(preferences["preferred_start_hour"])
     preferred_end_hour = int(preferences["preferred_end_hour"])
     block_minutes = int(preferences["block_minutes"])
+    break_minutes = int(preferences["break_minutes"])
     base_max_daily_study_minutes = int(preferences["max_daily_study_minutes"])
-    commute_extra_buffer_minutes = 0
-    for p_id in participant_ids:
-        preferences = get_user_preferences(p_id)
-        buffor = int(preferences["commute_extra_buffer_minutes"])
-        if buffor > commute_extra_buffer_minutes:
-            commute_extra_buffer_minutes = buffor
 
     if relaxation_level is None:
         relaxation_level = {
@@ -400,7 +386,14 @@ def collect_candidates_for_current_state(
                     possible_duration -= SEARCH_STEP_MINUTES
                     continue
 
-                if is_free(commute_extra_buffer_minutes,candidate_start, candidate_end, location, busy_slots):
+                if is_free(
+                    candidate_start,
+                    candidate_end,
+                    location,
+                    busy_slots,
+                    int(preferences["commute_extra_buffer_minutes"]),
+                    break_minutes
+                ):
                     candidates.append(
                         {
                             "start": candidate_start,
@@ -430,7 +423,6 @@ def collect_candidates_for_current_state(
     return candidates
 
 def generate_plan_hard(
-    owner_user_id: int,
     participant_ids: list[int],
     preferences: dict,
     deadline: datetime,
@@ -443,7 +435,6 @@ def generate_plan_hard(
 
     while remaining_minutes > 0:
         candidates = collect_candidates_for_current_state(
-            owner_user_id=owner_user_id,
             participant_ids=participant_ids,
             preferences=preferences,
             deadline=deadline,
@@ -481,7 +472,6 @@ def generate_plan_hard(
     return study_blocks
 
 def generate_plan_soft(
-    owner_user_id: int,
     participant_ids: list[int],
     preferences: dict,
     deadline: datetime,
@@ -514,7 +504,6 @@ def generate_plan_soft(
 
         while level_remaining_minutes > 0:
             candidates = collect_candidates_for_current_state(
-                owner_user_id=owner_user_id,
                 participant_ids=participant_ids,
                 preferences=preferences,
                 deadline=deadline,
@@ -576,7 +565,8 @@ def generate_study_plan_for_users_basic(
     from db import get_calendar_events_for_users, get_study_blocks, normalize_participant_user_ids
 
     participant_ids = normalize_participant_user_ids(owner_user_id, participant_user_ids)
-    preferences = get_user_preferences(owner_user_id)
+    preferences = get_group_planning_preferences(owner_user_id, participant_ids)
+    print("MAX DAILY:", preferences["max_daily_study_minutes"])
 
     total_hours_int = int(total_hours)
     if total_hours_int <= 0:
@@ -618,7 +608,6 @@ def generate_study_plan_for_users_basic(
 
     if mode == "soft":
         return generate_plan_soft(
-            owner_user_id=owner_user_id,
             participant_ids=participant_ids,
             preferences=preferences,
             deadline=deadline,
@@ -628,7 +617,6 @@ def generate_study_plan_for_users_basic(
         )
 
     return generate_plan_hard(
-        owner_user_id=owner_user_id,
         participant_ids=participant_ids,
         preferences=preferences,
         deadline=deadline,

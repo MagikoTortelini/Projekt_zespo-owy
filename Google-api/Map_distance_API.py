@@ -36,6 +36,6 @@ def Distance_and_tiem(Start_address, End_address):
 
 if __name__ == "__main__":
     # Testy manualne – uruchamiaj bezpośrednio: python Map_distance_API.py
-    distance, travel_seconds = Distance_and_tiem("Kazimierza Wielkiego 35, 50-077 Wrocław", "sobótka")
+    distance, travel_seconds = Distance_and_tiem("Janiszewskiego 11-17, 50-372 Wrocław", "sobótka")
     travel_seconds = int(distance / 8.3)
     print(f"Dystans: {distance}m  Czas: {int(travel_seconds / 60)} min")
